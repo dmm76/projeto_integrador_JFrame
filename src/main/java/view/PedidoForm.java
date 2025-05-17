@@ -27,7 +27,7 @@ public class PedidoForm extends JPanel {
     private JComboBox<FormaPagamento> cbFormaPagamento;
     private JTable tabela;
     private DefaultTableModel tableModel;
-    private JButton btnCadastrar, btnBuscar, btnAlterar, btnRemover;
+    private JButton btnCadastrar, btnBuscar, btnAlterar, btnRemover, btnRelatorio;
 
     private SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
 
@@ -52,6 +52,7 @@ public class PedidoForm extends JPanel {
         btnBuscar = new JButton("Buscar");
         btnAlterar = new JButton("Alterar");
         btnRemover = new JButton("Remover");
+        btnRelatorio = new JButton("Relatório");
 
         formPanel.add(new JLabel("Data (dd-MM-yyyy):"), gbc);
         gbc.gridx++;
@@ -84,6 +85,7 @@ public class PedidoForm extends JPanel {
         botoesPanel.add(btnBuscar);
         botoesPanel.add(btnAlterar);
         botoesPanel.add(btnRemover);
+        botoesPanel.add(btnRelatorio);
         formPanel.add(botoesPanel, gbc);
 
         tableModel = new DefaultTableModel(new Object[]{"ID", "Data", "Status", "Valor", "Cliente", "Pagamento"}, 0);
@@ -94,27 +96,11 @@ public class PedidoForm extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
 
         btnCadastrar.addActionListener(e -> salvarPedido());
-        btnBuscar.addActionListener(e -> {
-            int row = tabela.getSelectedRow();
-            if (row == -1) {
-                JOptionPane.showMessageDialog(this, "Selecione um pedido para buscar os itens.");
-                return;
-            }
-
-            int id = (int) tableModel.getValueAt(row, 0);
-            EntityManager em = JPAUtil.getEntityManager();
-            Pedido pedido = new PedidoDao(em).buscarPorID(id);
-            em.close();
-
-            JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
-            topFrame.getContentPane().removeAll();
-            topFrame.getContentPane().add(new ItemPedidoForm(pedido), BorderLayout.CENTER);
-            topFrame.revalidate();
-            topFrame.repaint();
-        });
+        btnBuscar.addActionListener(e -> carregarPedidos());
 
         btnAlterar.addActionListener(e -> alterarPedido());
         btnRemover.addActionListener(e -> removerPedido());
+        btnRelatorio.addActionListener(e -> gerarRelatorioPedidos());
 
         tabela.getSelectionModel().addListSelectionListener(this::preencherCamposComSelecionado);
 
@@ -327,4 +313,34 @@ public class PedidoForm extends JPanel {
         cbCliente.setSelectedIndex(0);
         cbFormaPagamento.setSelectedIndex(0);
     }
+    private void gerarRelatorioPedidos() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Salvar Relatório de Pedidos");
+        fileChooser.setSelectedFile(new java.io.File("relatorio_pedidos.txt"));
+
+        int userSelection = fileChooser.showSaveDialog(this);
+        if (userSelection != JFileChooser.APPROVE_OPTION) return;
+
+        java.io.File file = fileChooser.getSelectedFile();
+
+        try (java.io.PrintWriter writer = new java.io.PrintWriter(file)) {
+            writer.println("RELATÓRIO DE PEDIDOS");
+            writer.println("---------------------");
+
+            for (int i = 0; i < tableModel.getRowCount(); i++) {
+                writer.println("ID: " + tableModel.getValueAt(i, 0));
+                writer.println("Data: " + tableModel.getValueAt(i, 1));
+                writer.println("Status: " + tableModel.getValueAt(i, 2));
+                writer.println("Valor: R$ " + tableModel.getValueAt(i, 3));
+                writer.println("Cliente: " + tableModel.getValueAt(i, 4));
+                writer.println("Forma de Pagamento: " + tableModel.getValueAt(i, 5));
+                writer.println("---------------------------");
+            }
+
+            JOptionPane.showMessageDialog(this, "Relatório gerado com sucesso em:\n" + file.getAbsolutePath());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao gerar relatório: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
 }

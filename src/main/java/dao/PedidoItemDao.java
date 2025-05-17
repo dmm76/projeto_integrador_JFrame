@@ -27,6 +27,7 @@ public class PedidoItemDao {
     public PedidoItem buscarPorID(int id){
         return em.find(PedidoItem.class, id);
     }
+
     //buscar por Pedido
     public List<PedidoItem> buscarPorPedido(Pedido pedido) {
         String jpql = "SELECT pi FROM PedidoItem pi WHERE pi.pedido = :pedido";

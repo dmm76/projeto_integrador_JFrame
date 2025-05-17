@@ -15,7 +15,7 @@ public class LoginForm extends JFrame {
 
     public LoginForm() {
         setTitle("Login - Sistema de Bar e Restaurante");
-        setSize(350, 230);
+        setSize(380, 230);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 

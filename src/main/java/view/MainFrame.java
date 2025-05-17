@@ -88,7 +88,7 @@ public class MainFrame extends JFrame {
         setJMenuBar(menuBar);
 
         // Ações
-        itemRelatorio.addActionListener(e -> showMessage("Abrir tela de Relatórios"));
+        itemRelatorio.addActionListener(e -> abrirTela(new RelatorioForm()));
         itemSair.addActionListener(e -> System.exit(0));
 
         itemMarca.addActionListener(e -> abrirTela(new MarcaForm()));

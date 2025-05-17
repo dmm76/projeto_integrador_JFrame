@@ -25,7 +25,7 @@ public class ItemPedidoForm extends JPanel {
     private JButton btnCadastrar, btnBuscar, btnAlterar, btnRemover;
 
     public ItemPedidoForm() {
-        this(null); // construtor padrão chama o que aceita filtro
+        this(null);
     }
 
     public ItemPedidoForm(Pedido pedidoFiltrado) {
@@ -99,7 +99,7 @@ public class ItemPedidoForm extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
 
         btnCadastrar.addActionListener(e -> salvarItemPedido());
-        btnBuscar.addActionListener(e -> carregarItemPedidos());
+        btnBuscar.addActionListener(e -> buscarItensPorPedido());
         btnAlterar.addActionListener(e -> alterarItemPedido());
         btnRemover.addActionListener(e -> removerItemPedido());
 
@@ -154,6 +154,43 @@ public class ItemPedidoForm extends JPanel {
         JOptionPane.showMessageDialog(this, "Item do Pedido cadastrado com sucesso!");
         limparCampos();
         carregarItemPedidos();
+    }
+
+    private void buscarItensPorPedido() {
+        String input = JOptionPane.showInputDialog(this, "Informe o ID do Pedido para buscar os itens:");
+        if (input == null || input.isBlank()) return;
+
+        try {
+            int id = Integer.parseInt(input);
+            EntityManager em = JPAUtil.getEntityManager();
+            Pedido pedido = new PedidoDao(em).buscarPorID(id);
+            if (pedido == null) {
+                JOptionPane.showMessageDialog(this, "Pedido não encontrado.");
+                return;
+            }
+
+            List<PedidoItem> itens = new PedidoItemDao(em).buscarPorPedido(pedido);
+            em.close();
+
+            tableModel.setRowCount(0);
+            for (PedidoItem pi : itens) {
+                tableModel.addRow(new Object[]{
+                        pi.getIdPedidoItem(),
+                        pi.getItem().getNomeProduto(),
+                        pi.getQuantidadeItem(),
+                        pi.getValorItem(),
+                        pi.getValorTotalItem(),
+                        pi.getPedido().getIdPedido()
+                });
+            }
+
+            if (itens.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Nenhum item encontrado para o pedido informado.");
+            }
+
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "ID inválido. Digite um número inteiro.", "Erro", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void carregarItemPedidos() {
