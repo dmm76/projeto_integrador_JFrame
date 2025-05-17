@@ -1,19 +1,20 @@
 package view;
 
+import static util.EstiloSistema.*;
+
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import javax.imageio.ImageIO;
 
-import dao.PedidoItemDao;
 import model.UsuarioSistema;
-import view.MarcaForm;
-import view.CategoriaForm;
 
 public class MainFrame extends JFrame {
     private UsuarioSistema usuarioLogado;
     private JPanel contentPanel;
 
     public MainFrame(UsuarioSistema usuarioLogado) {
-
         this.usuarioLogado = usuarioLogado;
 
         setTitle("Sistema de Bar e Restaurante");
@@ -21,33 +22,46 @@ public class MainFrame extends JFrame {
         setSize(800, 500);
         setLocationRelativeTo(null);
 
-        // Painel central onde as telas serão encaixadas
-        contentPanel = new JPanel();
+        // Painel com imagem centralizada e opacidade
+        contentPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                try {
+                    BufferedImage imgOriginal = ImageIO.read(new File("src/main/java/util/images/BR_Sistema_LOGO2.png"));
+                    int larguraDesejada = 300;
+                    int alturaDesejada = 300;
+                    Image imagemReduzida = imgOriginal.getScaledInstance(larguraDesejada, alturaDesejada, Image.SCALE_SMOOTH);
+
+                    Graphics2D g2d = (Graphics2D) g.create();
+                    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.2f));
+
+                    int x = (getWidth() - larguraDesejada) / 2;
+                    int y = (getHeight() - alturaDesejada) / 2;
+                    g2d.drawImage(imagemReduzida, x, y, this);
+                    g2d.dispose();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
         contentPanel.setLayout(new BorderLayout());
-        contentPanel.setBackground(new Color(240, 240, 240)); // Cinza claro
+        contentPanel.setBackground(COR_FUNDO);
         add(contentPanel, BorderLayout.CENTER);
 
-        // Cria a barra de menu
+        // Barra de menu
         JMenuBar menuBar = new JMenuBar();
-        menuBar.setBackground(new Color(30, 50, 80)); // Cinza escuro
+        menuBar.setBackground(COR_MENU);
 
-        // Fonte personalizada
-        Font fonteMenu = new Font("Arial", Font.BOLD, 14);
-
-        // Menus principais
         JMenu menuCadastro = new JMenu("Cadastro");
         JMenu menuPedido = new JMenu("Pedido");
         JMenu menuSair = new JMenu("Sistema");
 
-        menuCadastro.setForeground(Color.WHITE);
-        menuPedido.setForeground(Color.WHITE);
-        menuSair.setForeground(Color.WHITE);
+        aplicarEstiloMenu(menuCadastro);
+        aplicarEstiloMenu(menuPedido);
+        aplicarEstiloMenu(menuSair);
 
-        menuCadastro.setFont(fonteMenu);
-        menuPedido.setFont(fonteMenu);
-        menuSair.setFont(fonteMenu);
-
-        // Ícones do menu
+        // Itens de menu
         JMenuItem itemCliente = new JMenuItem("Cliente", new ImageIcon("icons/cliente.png"));
         JMenuItem itemFornecedor = new JMenuItem("Fornecedor", new ImageIcon("icons/fornecedor.png"));
         JMenuItem itemProduto = new JMenuItem("Produto", new ImageIcon("icons/produto.png"));
@@ -63,7 +77,21 @@ public class MainFrame extends JFrame {
         JMenuItem itemCadastroUsuario = new JMenuItem("Gerenciar Usuários", new ImageIcon("icons/usuarios.png"));
         JMenuItem itemSair = new JMenuItem("Sair", new ImageIcon("icons/sair.png"));
 
-        // Adiciona itens aos menus
+        // Padronizar todos os itens de menu
+        aplicarEstiloMenuItem(itemCliente);
+        aplicarEstiloMenuItem(itemFornecedor);
+        aplicarEstiloMenuItem(itemProduto);
+        aplicarEstiloMenuItem(itemCategoria);
+        aplicarEstiloMenuItem(itemMarca);
+        aplicarEstiloMenuItem(itemFormaPagamento);
+        aplicarEstiloMenuItem(itemNovoPedido);
+        aplicarEstiloMenuItem(itemItensPedido);
+        aplicarEstiloMenuItem(itemVendas);
+        aplicarEstiloMenuItem(itemRelatorio);
+        aplicarEstiloMenuItem(itemCadastroUsuario);
+        aplicarEstiloMenuItem(itemSair);
+
+        // Adicionar aos menus
         menuCadastro.add(itemCategoria);
         menuCadastro.add(itemCliente);
         menuCadastro.add(itemFormaPagamento);
@@ -79,18 +107,15 @@ public class MainFrame extends JFrame {
         menuSair.add(itemCadastroUsuario);
         menuSair.add(itemSair);
 
-        // Adiciona menus à barra
+        // Adicionar menus à barra
         menuBar.add(menuCadastro);
         menuBar.add(menuPedido);
         menuBar.add(menuSair);
-
-        // Define a barra no frame
         setJMenuBar(menuBar);
 
         // Ações
         itemRelatorio.addActionListener(e -> abrirTela(new RelatorioForm()));
         itemSair.addActionListener(e -> System.exit(0));
-
         itemMarca.addActionListener(e -> abrirTela(new MarcaForm()));
         itemCategoria.addActionListener(e -> abrirTela(new CategoriaForm()));
         itemFormaPagamento.addActionListener(e -> abrirTela(new FormaPagamentoForm()));
@@ -102,6 +127,7 @@ public class MainFrame extends JFrame {
         itemVendas.addActionListener(e -> abrirTela(new VendaForm()));
         itemCadastroUsuario.addActionListener(e -> abrirTela(new UsuarioSistemaForm()));
 
+        // Permissões
         if (!usuarioLogado.getPerfilUsuario().equalsIgnoreCase("admin")) {
             menuCadastro.setEnabled(false);
             itemRelatorio.setEnabled(false);
@@ -110,14 +136,10 @@ public class MainFrame extends JFrame {
             itemFornecedor.setEnabled(false);
             itemProduto.setEnabled(false);
             itemItensPedido.setEnabled(false);
-            itemCadastroUsuario.setEnabled(false); // << FALTAVA ISSO
+            itemCadastroUsuario.setEnabled(false);
         }
 
         setVisible(true);
-    }
-
-    private void showMessage(String message) {
-        JOptionPane.showMessageDialog(this, message);
     }
 
     private void abrirTela(JPanel tela) {

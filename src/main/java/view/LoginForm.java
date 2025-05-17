@@ -1,5 +1,6 @@
 package view;
 
+import static util.EstiloSistema.*;
 import dao.UsuarioSistemaDao;
 import model.UsuarioSistema;
 import util.JPAUtil;
@@ -15,60 +16,60 @@ public class LoginForm extends JFrame {
 
     public LoginForm() {
         setTitle("Login - Sistema de Bar e Restaurante");
-        setSize(380, 230);
+        setSize(380, 320);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        // Definição de cores
-        Color fundoCor = new Color(200, 220, 240); // Cinza azulado
-        Color textoCor = new Color(30, 50, 80); // Azul escuro
-        Color campoFundo = Color.WHITE;
-        Color botaoCor = new Color(100, 150, 200); // Azul médio
-
-        // Fonte personalizada
-        Font fonteLabel = new Font("Arial", Font.BOLD, 14);
-        Font fonteBotao = new Font("Arial", Font.BOLD, 16);
-
-        // Painel principal estilizado
+        // Painel principal
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(fundoCor);
+        panel.setBackground(COR_FUNDO);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Componentes estilizados
+        // Logo
+        ImageIcon originalIcon = new ImageIcon("src/main/java/util/images/BR_Sistema_LOGO2.png");
+        Image imagemReduzida = originalIcon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+        JLabel logo = new JLabel(new ImageIcon(imagemReduzida));
+        logo.setHorizontalAlignment(SwingConstants.CENTER);
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        panel.add(logo, gbc);
+
+        // Campo Login
         JLabel lblLogin = new JLabel("Login:");
-        lblLogin.setForeground(textoCor);
-        lblLogin.setFont(fonteLabel);
+        aplicarEstiloLabel(lblLogin);
+        gbc.gridy++;
+        gbc.gridwidth = 1;
+        gbc.gridx = 0;
+        panel.add(lblLogin, gbc);
 
         txtLogin = new JTextField(20);
-        txtLogin.setBackground(campoFundo);
-
-        JLabel lblSenha = new JLabel("Senha:");
-        lblSenha.setForeground(textoCor);
-        lblSenha.setFont(fonteLabel);
-
-        txtSenha = new JPasswordField(20);
-        txtSenha.setBackground(campoFundo);
-
-        btnEntrar = new JButton("Entrar");
-        btnEntrar.setFont(fonteBotao);
-        btnEntrar.setForeground(Color.WHITE);
-        btnEntrar.setBackground(botaoCor);
-        btnEntrar.setIcon(new ImageIcon("icons/login.png")); // Ícone de login
-
-        // Adicionando componentes ao painel
-        gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(lblLogin, gbc);
+        aplicarEstiloCampo(txtLogin);
         gbc.gridx = 1;
         panel.add(txtLogin, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 1;
+        // Campo Senha
+        JLabel lblSenha = new JLabel("Senha:");
+        aplicarEstiloLabel(lblSenha);
+        gbc.gridy++;
+        gbc.gridx = 0;
         panel.add(lblSenha, gbc);
+
+        txtSenha = new JPasswordField(20);
+        aplicarEstiloCampo(txtSenha);
         gbc.gridx = 1;
         panel.add(txtSenha, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
+        // Botão Entrar
+        btnEntrar = new JButton("Entrar");
+        aplicarEstiloBotao(btnEntrar);
+        btnEntrar.setIcon(new ImageIcon("icons/login.png"));
+        gbc.gridy++;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
         panel.add(btnEntrar, gbc);
 
         add(panel);

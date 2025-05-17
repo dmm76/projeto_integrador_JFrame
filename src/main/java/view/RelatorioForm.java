@@ -62,6 +62,12 @@ public class RelatorioForm extends JPanel {
         if (escolha != JFileChooser.APPROVE_OPTION) return;
 
         File arquivo = chooser.getSelectedFile();
+
+        // Garante que o arquivo tenha extensão .txt
+        if (!arquivo.getName().toLowerCase().endsWith(".txt")) {
+            arquivo = new File(arquivo.getAbsolutePath() + ".txt");
+        }
+
         try (FileWriter writer = new FileWriter(arquivo)) {
             if (tipo.equals("Vendas por Período")) {
                 gerarRelatorioVendas(writer);
@@ -69,6 +75,9 @@ public class RelatorioForm extends JPanel {
                 gerarRelatorioProdutos(writer);
             }
             JOptionPane.showMessageDialog(this, "Relatório gerado com sucesso!");
+
+            // Abre o arquivo automaticamente no programa padrão
+            Desktop.getDesktop().open(arquivo);
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Erro ao gerar relatório.", "Erro", JOptionPane.ERROR_MESSAGE);
@@ -80,30 +89,35 @@ public class RelatorioForm extends JPanel {
         List<Pedido> pedidos = new PedidoDao(em).buscarTodos();
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
-        writer.write("ID\tData\tCliente\tTotal\n");
+        writer.write(String.format("%-10s %-15s %-20s %-10s%n", "ID", "Data", "Cliente", "Total"));
+        writer.write("=".repeat(55) + "\n");
+
         for (Pedido p : pedidos) {
-            writer.write(p.getIdPedido() + "\t" + sdf.format(p.getDataPedido()) + "\t" +
-                    p.getCliente().getNomeCliente() + "\tR$ " + p.getValorTotalPedido() + "\n");
+            writer.write(String.format("%-10d %-15s %-20s R$ %-10.2f%n",
+                    p.getIdPedido(),
+                    sdf.format(p.getDataPedido()),
+                    p.getCliente().getNomeCliente(),
+                    p.getValorTotalPedido()));
         }
+
         em.close();
     }
 
     private void gerarRelatorioProdutos(FileWriter writer) throws Exception {
         EntityManager em = JPAUtil.getEntityManager();
-        List<PedidoItem> itens = new PedidoItemDao(em).buscarTodos();
+        List<Object[]> resultados = em.createQuery(
+                "SELECT pi.item.nomeProduto, SUM(pi.quantidadeItem) " +
+                        "FROM PedidoItem pi " +
+                        "GROUP BY pi.item.nomeProduto " +
+                        "ORDER BY SUM(pi.quantidadeItem) DESC"
+        ).getResultList();
 
-        writer.write("Produto\tQuantidade\n");
-        itens.stream()
-                .collect(java.util.stream.Collectors.groupingBy(
-                        i -> i.getItem().getNomeProduto(),
-                        java.util.stream.Collectors.summingInt(PedidoItem::getQuantidadeItem)))
-                .forEach((produto, qtd) -> {
-                    try {
-                        writer.write(produto + "\t" + qtd + "\n");
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                });
+        writer.write(String.format("%-30s %10s%n", "Produto", "Quantidade"));
+        writer.write("=".repeat(45) + "\n");
+
+        for (Object[] linha : resultados) {
+            writer.write(String.format("%-30s %10d%n", (String) linha[0], (Long) linha[1]));
+        }
 
         em.close();
     }
