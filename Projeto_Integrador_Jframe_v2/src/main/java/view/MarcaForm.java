@@ -6,6 +6,8 @@ import util.JPAUtil;
 
 import javax.persistence.EntityManager;
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
@@ -47,6 +49,16 @@ public class MarcaForm extends JPanel {
         btnBuscar.addActionListener(e -> carregarMarcas());
         btnAlterar.addActionListener(e -> alterarMarca());
         btnRemover.addActionListener(e -> removerMarca());
+
+        tabela.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (!e.getValueIsAdjusting() && tabela.getSelectedRow() != -1) {
+                    int selectedRow = tabela.getSelectedRow();
+                    txtDescricao.setText((String) tableModel.getValueAt(selectedRow, 1));
+                }
+            }
+        });
 
         carregarMarcas();
     }
@@ -91,21 +103,23 @@ public class MarcaForm extends JPanel {
         }
 
         int id = (int) tableModel.getValueAt(selectedRow, 0);
-        String novaDescricao = JOptionPane.showInputDialog(this, "Nova descrição:", tableModel.getValueAt(selectedRow, 1));
-
-        if (novaDescricao != null && !novaDescricao.trim().isEmpty()) {
-            EntityManager em = JPAUtil.getEntityManager();
-            MarcaDao dao = new MarcaDao(em);
-
-            Marca marca = dao.buscarPorID(id);
-            em.getTransaction().begin();
-            marca.setDescricao(novaDescricao);
-            em.getTransaction().commit();
-            em.close();
-
-            JOptionPane.showMessageDialog(this, "Marca atualizada com sucesso!");
-            carregarMarcas();
+        String novaDescricao = txtDescricao.getText().trim();
+        if (novaDescricao.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "A nova descrição não pode estar vazia.");
+            return;
         }
+
+        EntityManager em = JPAUtil.getEntityManager();
+        MarcaDao dao = new MarcaDao(em);
+
+        Marca marca = dao.buscarPorID(id);
+        em.getTransaction().begin();
+        marca.setDescricao(novaDescricao);
+        em.getTransaction().commit();
+        em.close();
+
+        JOptionPane.showMessageDialog(this, "Marca atualizada com sucesso!");
+        carregarMarcas();
     }
 
     private void removerMarca() {

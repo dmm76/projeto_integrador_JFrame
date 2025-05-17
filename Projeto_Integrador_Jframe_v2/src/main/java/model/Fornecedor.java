@@ -73,4 +73,17 @@ public class Fornecedor {
     public void setEnderecoFornecedor(String enderecoFornecedor) {
         this.enderecoFornecedor = enderecoFornecedor;
     }
+
+    @Override
+    public String toString() {
+        return nomeFornecedor;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Fornecedor fornecedor = (Fornecedor) obj;
+        return idFornecedor == fornecedor.idFornecedor;
+    }
 }

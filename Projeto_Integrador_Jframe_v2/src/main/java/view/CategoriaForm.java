@@ -6,6 +6,8 @@ import util.JPAUtil;
 
 import javax.persistence.EntityManager;
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
@@ -47,6 +49,16 @@ public class CategoriaForm extends JPanel {
         btnBuscar.addActionListener(e -> carregarCategorias());
         btnAlterar.addActionListener(e -> alterarCategoria());
         btnRemover.addActionListener(e -> removerCategoria());
+
+        // Ação para preencher campo ao selecionar linha
+        tabela.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent e) {
+                int selectedRow = tabela.getSelectedRow();
+                if (selectedRow >= 0) {
+                    txtDescricao.setText(tableModel.getValueAt(selectedRow, 1).toString());
+                }
+            }
+        });
 
         carregarCategorias();
     }
@@ -91,21 +103,24 @@ public class CategoriaForm extends JPanel {
         }
 
         int id = (int) tableModel.getValueAt(selectedRow, 0);
-        String novaDescricao = JOptionPane.showInputDialog(this, "Nova descrição:", tableModel.getValueAt(selectedRow, 1));
+        String novaDescricao = txtDescricao.getText().trim();
 
-        if (novaDescricao != null && !novaDescricao.trim().isEmpty()) {
-            EntityManager em = JPAUtil.getEntityManager();
-            CategoriaDao dao = new CategoriaDao(em);
-
-            Categoria categoria = dao.buscarPorID(id);
-            em.getTransaction().begin();
-            categoria.setDescricao(novaDescricao);
-            em.getTransaction().commit();
-            em.close();
-
-            JOptionPane.showMessageDialog(this, "Categoria atualizada com sucesso!");
-            carregarCategorias();
+        if (novaDescricao.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "A nova descrição não pode estar vazia.");
+            return;
         }
+
+        EntityManager em = JPAUtil.getEntityManager();
+        CategoriaDao dao = new CategoriaDao(em);
+
+        Categoria categoria = dao.buscarPorID(id);
+        em.getTransaction().begin();
+        categoria.setDescricao(novaDescricao);
+        em.getTransaction().commit();
+        em.close();
+
+        JOptionPane.showMessageDialog(this, "Categoria atualizada com sucesso!");
+        carregarCategorias();
     }
 
     private void removerCategoria() {

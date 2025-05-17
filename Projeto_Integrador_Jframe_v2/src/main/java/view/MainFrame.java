@@ -41,19 +41,21 @@ public class MainFrame extends JFrame {
         JMenuItem itemItensPedido = new JMenuItem("Itens do Pedido");
 
         // Item sair
+        JMenuItem itemRelatorio = new JMenuItem("Relatório");
         JMenuItem itemSair = new JMenuItem("Sair");
 
         // Adiciona itens aos menus
-        menuCadastro.add(itemCliente);
-        menuCadastro.add(itemFornecedor);
-        menuCadastro.add(itemProduto);
         menuCadastro.add(itemCategoria);
-        menuCadastro.add(itemMarca);
+        menuCadastro.add(itemCliente);
         menuCadastro.add(itemFormaPagamento);
+        menuCadastro.add(itemFornecedor);
+        menuCadastro.add(itemMarca);
+        menuCadastro.add(itemProduto);
 
         menuPedido.add(itemNovoPedido);
         menuPedido.add(itemItensPedido);
 
+        menuSair.add(itemRelatorio);
         menuSair.add(itemSair);
 
         // Adiciona menus à barra
@@ -65,10 +67,10 @@ public class MainFrame extends JFrame {
         setJMenuBar(menuBar);
 
         // Ações de exemplo (você substituirá por formulários reais)
-        itemCliente.addActionListener(e -> showMessage("Abrir tela de Cliente"));
-        itemFornecedor.addActionListener(e -> showMessage("Abrir tela de Fornecedor"));
-        itemProduto.addActionListener(e -> showMessage("Abrir tela de Produto"));
-        itemFormaPagamento.addActionListener(e -> showMessage("Abrir tela de Forma de Pagamento"));
+        //itemCliente.addActionListener(e -> showMessage("Abrir tela de Cliente"));
+        itemRelatorio.addActionListener(e -> showMessage("Abrir tela de Relatórios"));
+        //itemProduto.addActionListener(e -> showMessage("Abrir tela de Produto"));
+        //itemFormaPagamento.addActionListener(e -> showMessage("Abrir tela de Forma de Pagamento"));
         itemNovoPedido.addActionListener(e -> showMessage("Abrir tela de Novo Pedido"));
         itemItensPedido.addActionListener(e -> showMessage("Abrir tela de Itens do Pedido"));
         itemSair.addActionListener(e -> System.exit(0));
@@ -78,6 +80,8 @@ public class MainFrame extends JFrame {
         itemCategoria.addActionListener(e -> abrirTela(new CategoriaForm()));
         itemFormaPagamento.addActionListener(e -> abrirTela(new FormaPagamentoForm()));
         itemFornecedor.addActionListener(e -> abrirTela(new FornecedorForm()));
+        itemCliente.addActionListener(e -> abrirTela(new ClienteForm()));
+        itemProduto.addActionListener(e -> abrirTela(new ItemForm()));
 
         setVisible(true);
     }

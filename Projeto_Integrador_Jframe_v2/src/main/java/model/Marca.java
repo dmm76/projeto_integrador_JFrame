@@ -32,4 +32,17 @@ public class Marca {
     public void setDescricao(String descricao) {
         this.descricao = descricao;
     }
+
+    @Override
+    public String toString() {
+        return descricao;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Marca marca = (Marca) obj;
+        return idMarca == marca.idMarca;
+    }
 }

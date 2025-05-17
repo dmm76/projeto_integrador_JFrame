@@ -20,21 +20,36 @@ public class FormaPagamentoForm extends JPanel {
     public FormaPagamentoForm() {
         setLayout(new BorderLayout(10, 10));
 
-        JPanel formPanel = new JPanel(new FlowLayout());
+        // Campos
         txtDescricao = new JTextField(20);
-        formPanel.add(new JLabel("Descrição:"));
-        formPanel.add(txtDescricao);
-
         btnCadastrar = new JButton("Cadastrar");
         btnBuscar = new JButton("Buscar");
         btnAlterar = new JButton("Alterar");
         btnRemover = new JButton("Remover");
 
-        formPanel.add(btnCadastrar);
-        formPanel.add(btnBuscar);
-        formPanel.add(btnAlterar);
-        formPanel.add(btnRemover);
+        // Painel de formulário com GridBagLayout
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
+        gbc.gridx = 0; gbc.gridy = 0;
+        formPanel.add(new JLabel("Descrição:"), gbc);
+        gbc.gridx = 1;
+        formPanel.add(txtDescricao, gbc);
+
+        // Painel de botões
+        JPanel botoesPanel = new JPanel(new GridLayout(1, 4, 10, 0));
+        botoesPanel.add(btnCadastrar);
+        botoesPanel.add(btnBuscar);
+        botoesPanel.add(btnAlterar);
+        botoesPanel.add(btnRemover);
+
+        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        formPanel.add(botoesPanel, gbc);
+
+        // Tabela
         tableModel = new DefaultTableModel(new Object[]{"ID", "Descrição"}, 0);
         tabela = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(tabela);
@@ -42,11 +57,12 @@ public class FormaPagamentoForm extends JPanel {
         add(formPanel, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
 
-        // Ações
+        // Eventos
         btnCadastrar.addActionListener(e -> salvarFormaPagamento());
         btnBuscar.addActionListener(e -> carregarFormasPagamento());
         btnAlterar.addActionListener(e -> alterarFormaPagamento());
         btnRemover.addActionListener(e -> removerFormaPagamento());
+        tabela.getSelectionModel().addListSelectionListener(e -> atualizarCampoTexto());
 
         carregarFormasPagamento();
     }
@@ -91,21 +107,23 @@ public class FormaPagamentoForm extends JPanel {
         }
 
         int id = (int) tableModel.getValueAt(selectedRow, 0);
-        String novaDescricao = JOptionPane.showInputDialog(this, "Nova descrição:", tableModel.getValueAt(selectedRow, 1));
-
-        if (novaDescricao != null && !novaDescricao.trim().isEmpty()) {
-            EntityManager em = JPAUtil.getEntityManager();
-            FormaPagamentoDao dao = new FormaPagamentoDao(em);
-
-            FormaPagamento forma = dao.buscarPorID(id);
-            em.getTransaction().begin();
-            forma.setDescricao(novaDescricao);
-            em.getTransaction().commit();
-            em.close();
-
-            JOptionPane.showMessageDialog(this, "Forma de pagamento atualizada com sucesso!");
-            carregarFormasPagamento();
+        String novaDescricao = txtDescricao.getText().trim();
+        if (novaDescricao.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Digite uma nova descrição.");
+            return;
         }
+
+        EntityManager em = JPAUtil.getEntityManager();
+        FormaPagamentoDao dao = new FormaPagamentoDao(em);
+
+        FormaPagamento forma = dao.buscarPorID(id);
+        em.getTransaction().begin();
+        forma.setDescricao(novaDescricao);
+        em.getTransaction().commit();
+        em.close();
+
+        JOptionPane.showMessageDialog(this, "Forma de pagamento atualizada com sucesso!");
+        carregarFormasPagamento();
     }
 
     private void removerFormaPagamento() {
@@ -115,20 +133,28 @@ public class FormaPagamentoForm extends JPanel {
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(this, "Deseja realmente remover esta forma de pagamento?", "Confirmação", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this, "Deseja realmente remover?", "Confirmação", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return;
 
         int id = (int) tableModel.getValueAt(selectedRow, 0);
         EntityManager em = JPAUtil.getEntityManager();
         FormaPagamentoDao dao = new FormaPagamentoDao(em);
-
         FormaPagamento forma = dao.buscarPorID(id);
+
         em.getTransaction().begin();
         dao.remover(forma);
         em.getTransaction().commit();
         em.close();
 
-        JOptionPane.showMessageDialog(this, "Forma de pagamento removida com sucesso!");
+        JOptionPane.showMessageDialog(this, "Removido com sucesso!");
         carregarFormasPagamento();
+    }
+
+    private void atualizarCampoTexto() {
+        int selectedRow = tabela.getSelectedRow();
+        if (selectedRow != -1) {
+            String descricao = (String) tableModel.getValueAt(selectedRow, 1);
+            txtDescricao.setText(descricao);
+        }
     }
 }
