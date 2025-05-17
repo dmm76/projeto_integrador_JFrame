@@ -82,4 +82,20 @@ public class Pedido {
     public void setFormaPagamento(FormaPagamento formaPagamento) {
         this.formaPagamento = formaPagamento;
     }
+
+    @Override
+    public String toString() {
+        if (idPedido == 0) {
+            return "-- Selecione --";
+        }
+        return "Pedido #" + idPedido;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Pedido pedido = (Pedido) obj;
+        return idPedido == pedido.idPedido;
+    }
 }

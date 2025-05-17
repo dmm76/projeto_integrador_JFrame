@@ -72,4 +72,17 @@ public class Cliente {
     public void setEnderecoCliente(String enderecoCliente) {
         this.enderecoCliente = enderecoCliente;
     }
+
+    @Override
+    public String toString() {
+        return nomeCliente;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Cliente cliente = (Cliente) obj;
+        return idCliente == cliente.idCliente;
+    }
 }

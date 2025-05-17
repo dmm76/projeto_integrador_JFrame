@@ -80,4 +80,17 @@ public class PedidoItem {
     public void setValorTotalItem(double valorTotalItem) {
         this.valorTotalItem = valorTotalItem;
     }
+
+    @Override
+    public String toString() {
+        return item.getNomeProduto() + " x " + quantidadeItem;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        PedidoItem pedidoItem = (PedidoItem) obj;
+        return idPedidoItem == pedidoItem.idPedidoItem;
+    }
 }

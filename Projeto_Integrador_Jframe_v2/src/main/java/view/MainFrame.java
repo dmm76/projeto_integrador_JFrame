@@ -2,6 +2,8 @@ package view;
 
 import javax.swing.*;
 import java.awt.*;
+
+import dao.PedidoItemDao;
 import view.MarcaForm;
 import view.CategoriaForm;
 
@@ -39,6 +41,7 @@ public class MainFrame extends JFrame {
         // Itens do menu Pedido
         JMenuItem itemNovoPedido = new JMenuItem("Novo Pedido");
         JMenuItem itemItensPedido = new JMenuItem("Itens do Pedido");
+        JMenuItem itemVendas = new JMenuItem("PDV Vendas");
 
         // Item sair
         JMenuItem itemRelatorio = new JMenuItem("Relatório");
@@ -52,8 +55,10 @@ public class MainFrame extends JFrame {
         menuCadastro.add(itemMarca);
         menuCadastro.add(itemProduto);
 
+
         menuPedido.add(itemNovoPedido);
         menuPedido.add(itemItensPedido);
+        menuPedido.add(itemVendas);
 
         menuSair.add(itemRelatorio);
         menuSair.add(itemSair);
@@ -71,8 +76,8 @@ public class MainFrame extends JFrame {
         itemRelatorio.addActionListener(e -> showMessage("Abrir tela de Relatórios"));
         //itemProduto.addActionListener(e -> showMessage("Abrir tela de Produto"));
         //itemFormaPagamento.addActionListener(e -> showMessage("Abrir tela de Forma de Pagamento"));
-        itemNovoPedido.addActionListener(e -> showMessage("Abrir tela de Novo Pedido"));
-        itemItensPedido.addActionListener(e -> showMessage("Abrir tela de Itens do Pedido"));
+        //itemNovoPedido.addActionListener(e -> showMessage("Abrir tela de Novo Pedido"));
+        //itemItensPedido.addActionListener(e -> showMessage("Abrir tela de Itens do Pedido"));
         itemSair.addActionListener(e -> System.exit(0));
 
         // Ações com formulários reais
@@ -82,6 +87,9 @@ public class MainFrame extends JFrame {
         itemFornecedor.addActionListener(e -> abrirTela(new FornecedorForm()));
         itemCliente.addActionListener(e -> abrirTela(new ClienteForm()));
         itemProduto.addActionListener(e -> abrirTela(new ItemForm()));
+        itemNovoPedido.addActionListener(e -> abrirTela(new PedidoForm()));
+        itemItensPedido.addActionListener(e -> abrirTela(new ItemPedidoForm()));
+        itemVendas.addActionListener(e -> abrirTela(new VendaForm()));
 
         setVisible(true);
     }

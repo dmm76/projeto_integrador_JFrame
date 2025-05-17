@@ -32,4 +32,17 @@ public class FormaPagamento {
     public void setDescricao(String descricao) {
         this.descricao = descricao;
     }
+
+    @Override
+    public String toString() {
+        return descricao;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        FormaPagamento  formaPagamento = (FormaPagamento) obj;
+        return idFormaPagamento == formaPagamento.idFormaPagamento;
+    }
 }
