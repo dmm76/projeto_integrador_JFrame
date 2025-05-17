@@ -1,5 +1,6 @@
 package dao;
 
+import model.Pedido;
 import model.PedidoItem;
 
 import javax.persistence.EntityManager;
@@ -25,6 +26,13 @@ public class PedidoItemDao {
     //buscar por Id
     public PedidoItem buscarPorID(int id){
         return em.find(PedidoItem.class, id);
+    }
+    //buscar por Pedido
+    public List<PedidoItem> buscarPorPedido(Pedido pedido) {
+        String jpql = "SELECT pi FROM PedidoItem pi WHERE pi.pedido = :pedido";
+        return em.createQuery(jpql, PedidoItem.class)
+                .setParameter("pedido", pedido)
+                .getResultList();
     }
     //remover
     public void remover(PedidoItem pedidoItem){

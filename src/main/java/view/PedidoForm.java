@@ -3,10 +3,12 @@ package view;
 import dao.ClienteDao;
 import dao.FormaPagamentoDao;
 import dao.PedidoDao;
+import dao.PedidoItemDao;
 import model.Cliente;
 import model.FormaPagamento;
 import model.Pedido;
 import util.JPAUtil;
+import model.PedidoItem;
 
 import javax.persistence.EntityManager;
 import javax.swing.*;
@@ -92,7 +94,25 @@ public class PedidoForm extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
 
         btnCadastrar.addActionListener(e -> salvarPedido());
-        btnBuscar.addActionListener(e -> carregarPedidos());
+        btnBuscar.addActionListener(e -> {
+            int row = tabela.getSelectedRow();
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Selecione um pedido para buscar os itens.");
+                return;
+            }
+
+            int id = (int) tableModel.getValueAt(row, 0);
+            EntityManager em = JPAUtil.getEntityManager();
+            Pedido pedido = new PedidoDao(em).buscarPorID(id);
+            em.close();
+
+            JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+            topFrame.getContentPane().removeAll();
+            topFrame.getContentPane().add(new ItemPedidoForm(pedido), BorderLayout.CENTER);
+            topFrame.revalidate();
+            topFrame.repaint();
+        });
+
         btnAlterar.addActionListener(e -> alterarPedido());
         btnRemover.addActionListener(e -> removerPedido());
 
@@ -122,14 +142,20 @@ public class PedidoForm extends JPanel {
 
     private void salvarPedido() {
         try {
-            if (cbCliente.getSelectedIndex() == 0 || cbFormaPagamento.getSelectedIndex() == 0) {
-                JOptionPane.showMessageDialog(this, "Selecione um cliente e uma forma de pagamento.");
+            // Verificações de campos obrigatórios
+            if (txtData.getText().trim().isEmpty() ||
+                    txtStatus.getText().trim().isEmpty() ||
+                    txtValor.getText().trim().isEmpty() ||
+                    cbCliente.getSelectedIndex() == -1 ||
+                    cbFormaPagamento.getSelectedIndex() == -1) {
+                JOptionPane.showMessageDialog(this, "Preencha todos os campos obrigatórios.");
                 return;
             }
 
             Date data = sdf.parse(txtData.getText().trim());
             String status = txtStatus.getText().trim();
             double valor = Double.parseDouble(txtValor.getText().trim());
+
             Cliente cliente = (Cliente) cbCliente.getSelectedItem();
             FormaPagamento pagamento = (FormaPagamento) cbFormaPagamento.getSelectedItem();
 
@@ -147,9 +173,15 @@ public class PedidoForm extends JPanel {
             carregarPedidos();
 
         } catch (ParseException ex) {
-            JOptionPane.showMessageDialog(this, "Data inválida. Use o formato dd-MM-yyyy");
+            JOptionPane.showMessageDialog(this, "Data inválida. Use o formato dd-MM-yyyy", "Erro", JOptionPane.ERROR_MESSAGE);
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Valor total deve ser numérico válido.", "Erro", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao salvar o pedido.", "Erro", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
     }
+
 
     private void carregarPedidos() {
         tableModel.setRowCount(0);
@@ -174,31 +206,45 @@ public class PedidoForm extends JPanel {
             JOptionPane.showMessageDialog(this, "Selecione um pedido para alterar.");
             return;
         }
-        int id = (int) tableModel.getValueAt(row, 0);
-
-        EntityManager em = JPAUtil.getEntityManager();
-        PedidoDao dao = new PedidoDao(em);
-        Pedido pedido = dao.buscarPorID(id);
-
-        try {
-            pedido.setDataPedido(sdf.parse(txtData.getText().trim()));
-        } catch (ParseException e) {
-            JOptionPane.showMessageDialog(this, "Data inválida. Use o formato dd-MM-yyyy");
+        if (txtData.getText().trim().isEmpty() ||
+                txtStatus.getText().trim().isEmpty() ||
+                txtValor.getText().trim().isEmpty() ||
+                cbCliente.getSelectedIndex() == -1 ||
+                cbFormaPagamento.getSelectedIndex() == -1) {
+            JOptionPane.showMessageDialog(this, "Preencha todos os campos obrigatórios.");
             return;
         }
 
-        pedido.setStatusPedido(txtStatus.getText().trim());
-        pedido.setValorTotalPedido(Double.parseDouble(txtValor.getText().trim()));
-        pedido.setCliente((Cliente) cbCliente.getSelectedItem());
-        pedido.setFormaPagamento((FormaPagamento) cbFormaPagamento.getSelectedItem());
 
-        em.getTransaction().begin();
-        dao.alterar(pedido);
-        em.getTransaction().commit();
-        em.close();
+        try {
+            int id = (int) tableModel.getValueAt(row, 0);
 
-        JOptionPane.showMessageDialog(this, "Pedido atualizado com sucesso!");
-        carregarPedidos();
+            EntityManager em = JPAUtil.getEntityManager();
+            PedidoDao dao = new PedidoDao(em);
+            Pedido pedido = dao.buscarPorID(id);
+
+            pedido.setDataPedido(sdf.parse(txtData.getText().trim()));
+            pedido.setStatusPedido(txtStatus.getText().trim());
+            pedido.setValorTotalPedido(Double.parseDouble(txtValor.getText().trim()));
+            pedido.setCliente((Cliente) cbCliente.getSelectedItem());
+            pedido.setFormaPagamento((FormaPagamento) cbFormaPagamento.getSelectedItem());
+
+            em.getTransaction().begin();
+            dao.alterar(pedido);
+            em.getTransaction().commit();
+            em.close();
+
+            JOptionPane.showMessageDialog(this, "Pedido atualizado com sucesso!");
+            limparCampos();
+            carregarPedidos();
+        } catch (ParseException e) {
+            JOptionPane.showMessageDialog(this, "Data inválida. Use o formato dd-MM-yyyy", "Erro", JOptionPane.ERROR_MESSAGE);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Valor total deve ser numérico válido.", "Erro", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Erro ao atualizar o pedido.", "Erro", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
     }
 
     private void removerPedido() {
@@ -213,15 +259,39 @@ public class PedidoForm extends JPanel {
 
         int id = (int) tableModel.getValueAt(row, 0);
         EntityManager em = JPAUtil.getEntityManager();
-        Pedido pedido = new PedidoDao(em).buscarPorID(id);
+        PedidoDao pedidoDao = new PedidoDao(em);
+        PedidoItemDao itemDao = new PedidoItemDao(em);
 
-        em.getTransaction().begin();
-        em.remove(pedido);
-        em.getTransaction().commit();
-        em.close();
+        try {
+            Pedido pedido = pedidoDao.buscarPorID(id);
 
-        JOptionPane.showMessageDialog(this, "Pedido removido com sucesso!");
-        carregarPedidos();
+            em.getTransaction().begin();
+
+            // Remove os itens vinculados a este pedido
+            List<PedidoItem> itens = em.createQuery(
+                            "SELECT i FROM PedidoItem i WHERE i.pedido = :pedido", PedidoItem.class)
+                    .setParameter("pedido", pedido)
+                    .getResultList();
+
+            for (PedidoItem item : itens) {
+                itemDao.remover(item);
+            }
+
+            // Agora remove o pedido
+            pedidoDao.remover(pedido);
+
+            em.getTransaction().commit();
+
+            JOptionPane.showMessageDialog(this, "Pedido e itens vinculados removidos com sucesso!");
+            limparCampos();
+            carregarPedidos();
+        } catch (Exception e) {
+            em.getTransaction().rollback();
+            JOptionPane.showMessageDialog(this, "Erro ao remover pedido: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        } finally {
+            em.close();
+        }
     }
 
     private void preencherCamposComSelecionado(ListSelectionEvent e) {

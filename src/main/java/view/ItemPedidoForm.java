@@ -16,7 +16,7 @@ import java.awt.*;
 import java.util.List;
 
 public class ItemPedidoForm extends JPanel {
-
+    private Pedido pedidoFiltrado;
     private JComboBox<Pedido> cbPedido;
     private JComboBox<Item> cbItem;
     private JTextField txtQuantidade, txtValor, txtValorTotal;
@@ -25,6 +25,15 @@ public class ItemPedidoForm extends JPanel {
     private JButton btnCadastrar, btnBuscar, btnAlterar, btnRemover;
 
     public ItemPedidoForm() {
+        this(null); // construtor padrão chama o que aceita filtro
+    }
+
+    public ItemPedidoForm(Pedido pedidoFiltrado) {
+        this.pedidoFiltrado = pedidoFiltrado;
+        initUI();
+    }
+
+    private void initUI() {
         setLayout(new BorderLayout(10, 10));
 
         JPanel formPanel = new JPanel(new GridBagLayout());
