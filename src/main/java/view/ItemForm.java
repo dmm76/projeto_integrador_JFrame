@@ -17,84 +17,69 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
-public class ItemForm extends JPanel {
+import static util.EstiloSistema.*;
 
-    private JTextField txtNome, txtDescricao, txtValor;
-    private JComboBox<Marca> cbMarca;
-    private JComboBox<Categoria> cbCategoria;
-    private JComboBox<Fornecedor> cbFornecedor;
-    private JTable tabela;
-    private DefaultTableModel tableModel;
-    private JButton btnCadastrar, btnBuscar, btnAlterar, btnRemover;
+public class ItemForm extends JPanel {
+    private final JTextField txtNome = new JTextField(20);
+    private final JTextField txtDescricao = new JTextField(20);
+    private final JTextField txtValor = new JTextField(10);
+    private final JComboBox<Marca> cbMarca = new JComboBox<>();
+    private final JComboBox<Categoria> cbCategoria = new JComboBox<>();
+    private final JComboBox<Fornecedor> cbFornecedor = new JComboBox<>();
+    private final JTable tabela;
+    private final DefaultTableModel tableModel;
+    private final JButton btnCadastrar = new JButton("Cadastrar");
+    private final JButton btnBuscar = new JButton("Buscar");
+    private final JButton btnAlterar = new JButton("Alterar");
+    private final JButton btnRemover = new JButton("Remover");
 
     public ItemForm() {
         setLayout(new BorderLayout(10, 10));
+        setBackground(COR_FUNDO);
 
         JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(COR_FUNDO);
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridx = gbc.gridy = 0;
 
-        txtNome = new JTextField(20);
-        txtDescricao = new JTextField(20);
-        txtValor = new JTextField(10);
-        cbMarca = new JComboBox<>();
-        cbCategoria = new JComboBox<>();
-        cbFornecedor = new JComboBox<>();
+        int linha = 0;
+        adicionarCampo(formPanel, "Nome:", txtNome, gbc, linha++);
+        adicionarCampo(formPanel, "Descrição:", txtDescricao, gbc, linha++);
+        adicionarCampo(formPanel, "Valor Unitário:", txtValor, gbc, linha++);
+        adicionarCampo(formPanel, "Marca:", cbMarca, gbc, linha++);
+        adicionarCampo(formPanel, "Categoria:", cbCategoria, gbc, linha++);
+        adicionarCampo(formPanel, "Fornecedor:", cbFornecedor, gbc, linha++);
 
-        carregarComboBox();
+        aplicarEstiloCampo(txtNome);
+        aplicarEstiloCampo(txtDescricao);
+        aplicarEstiloCampo(txtValor);
+
+        aplicarEstiloBotao(btnCadastrar);
+        aplicarEstiloBotao(btnBuscar);
+        aplicarEstiloBotao(btnAlterar);
+        aplicarEstiloBotao(btnRemover);
+
         configurarRenderizadores();
+        carregarComboBox();
 
-        btnCadastrar = new JButton("Cadastrar");
-        btnBuscar = new JButton("Buscar");
-        btnAlterar = new JButton("Alterar");
-        btnRemover = new JButton("Remover");
-
-        formPanel.add(new JLabel("Nome:"), gbc);
-        gbc.gridx++;
-        formPanel.add(txtNome, gbc);
-        gbc.gridx = 0; gbc.gridy++;
-
-        formPanel.add(new JLabel("Descrição:"), gbc);
-        gbc.gridx++;
-        formPanel.add(txtDescricao, gbc);
-        gbc.gridx = 0; gbc.gridy++;
-
-        formPanel.add(new JLabel("Valor Unitário:"), gbc);
-        gbc.gridx++;
-        formPanel.add(txtValor, gbc);
-        gbc.gridx = 0; gbc.gridy++;
-
-        formPanel.add(new JLabel("Marca:"), gbc);
-        gbc.gridx++;
-        formPanel.add(cbMarca, gbc);
-        gbc.gridx = 0; gbc.gridy++;
-
-        formPanel.add(new JLabel("Categoria:"), gbc);
-        gbc.gridx++;
-        formPanel.add(cbCategoria, gbc);
-        gbc.gridx = 0; gbc.gridy++;
-
-        formPanel.add(new JLabel("Fornecedor:"), gbc);
-        gbc.gridx++;
-        formPanel.add(cbFornecedor, gbc);
-        gbc.gridx = 0; gbc.gridy++;
-
-        gbc.gridwidth = 2;
-        JPanel botoesPanel = new JPanel(new GridLayout(1, 4, 5, 5));
+        JPanel botoesPanel = new JPanel(new GridLayout(1, 4, 10, 0));
+        botoesPanel.setBackground(COR_FUNDO);
         botoesPanel.add(btnCadastrar);
         botoesPanel.add(btnBuscar);
         botoesPanel.add(btnAlterar);
         botoesPanel.add(btnRemover);
+
+        gbc.gridx = 0;
+        gbc.gridy = linha;
+        gbc.gridwidth = 2;
         formPanel.add(botoesPanel, gbc);
+
+        add(formPanel, BorderLayout.NORTH);
 
         tableModel = new DefaultTableModel(new Object[]{"ID", "Nome", "Valor", "Marca", "Categoria", "Fornecedor"}, 0);
         tabela = new JTable(tableModel);
-        JScrollPane scrollPane = new JScrollPane(tabela);
-
-        add(formPanel, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
+        add(new JScrollPane(tabela), BorderLayout.CENTER);
 
         btnCadastrar.addActionListener(e -> salvarItem());
         btnBuscar.addActionListener(e -> carregarItens());
@@ -102,22 +87,33 @@ public class ItemForm extends JPanel {
         btnRemover.addActionListener(e -> removerItem());
 
         tabela.getSelectionModel().addListSelectionListener(this::preencherCamposComSelecionado);
-
         carregarItens();
+    }
+
+    private void adicionarCampo(JPanel panel, String rotulo, JComponent campo, GridBagConstraints gbc, int linha) {
+        gbc.gridx = 0;
+        gbc.gridy = linha;
+        gbc.gridwidth = 1;
+        JLabel label = new JLabel(rotulo);
+        aplicarEstiloLabel(label);
+        panel.add(label, gbc);
+
+        gbc.gridx = 1;
+        panel.add(campo, gbc);
     }
 
     private void carregarComboBox() {
         EntityManager em = JPAUtil.getEntityManager();
-
         cbMarca.removeAllItems();
+        cbCategoria.removeAllItems();
+        cbFornecedor.removeAllItems();
+
         cbMarca.addItem(null);
         new MarcaDao(em).buscarTodos().forEach(cbMarca::addItem);
 
-        cbCategoria.removeAllItems();
         cbCategoria.addItem(null);
         new CategoriaDao(em).buscarTodos().forEach(cbCategoria::addItem);
 
-        cbFornecedor.removeAllItems();
         cbFornecedor.addItem(null);
         new FornecedorDao(em).buscarTodos().forEach(cbFornecedor::addItem);
 
@@ -131,26 +127,43 @@ public class ItemForm extends JPanel {
     }
 
     private void salvarItem() {
-        String nome = txtNome.getText().trim();
-        String descricao = txtDescricao.getText().trim();
-        double valor = Double.parseDouble(txtValor.getText().trim());
+        try {
+            if (txtNome.getText().trim().isEmpty() ||
+                    txtDescricao.getText().trim().isEmpty() ||
+                    txtValor.getText().trim().isEmpty() ||
+                    cbMarca.getSelectedItem() == null ||
+                    cbCategoria.getSelectedItem() == null ||
+                    cbFornecedor.getSelectedItem() == null) {
+                JOptionPane.showMessageDialog(this, "Preencha todos os campos obrigatórios.");
+                return;
+            }
 
-        Marca marca = (Marca) cbMarca.getSelectedItem();
-        Categoria categoria = (Categoria) cbCategoria.getSelectedItem();
-        Fornecedor fornecedor = (Fornecedor) cbFornecedor.getSelectedItem();
+            double valor = Double.parseDouble(txtValor.getText().trim());
+            Item item = new Item(
+                    txtNome.getText().trim(),
+                    txtDescricao.getText().trim(),
+                    valor,
+                    (Marca) cbMarca.getSelectedItem(),
+                    (Categoria) cbCategoria.getSelectedItem(),
+                    (Fornecedor) cbFornecedor.getSelectedItem()
+            );
 
-        EntityManager em = JPAUtil.getEntityManager();
-        ItemDao dao = new ItemDao(em);
+            EntityManager em = JPAUtil.getEntityManager();
+            ItemDao dao = new ItemDao(em);
 
-        Item item = new Item(nome, descricao, valor, marca, categoria, fornecedor);
-        em.getTransaction().begin();
-        dao.cadastrar(item);
-        em.getTransaction().commit();
-        em.close();
+            em.getTransaction().begin();
+            dao.cadastrar(item);
+            em.getTransaction().commit();
+            em.close();
 
-        JOptionPane.showMessageDialog(this, "Item cadastrado com sucesso!");
-        limparCampos();
-        carregarItens();
+            JOptionPane.showMessageDialog(this, "Item cadastrado com sucesso!");
+            limparCampos();
+            carregarItens();
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Valor inválido. Digite um número válido.", "Erro", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao salvar item: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void carregarItens() {
@@ -176,26 +189,30 @@ public class ItemForm extends JPanel {
             JOptionPane.showMessageDialog(this, "Selecione um item para alterar.");
             return;
         }
-        int id = (int) tableModel.getValueAt(row, 0);
+        try {
+            int id = (int) tableModel.getValueAt(row, 0);
+            EntityManager em = JPAUtil.getEntityManager();
+            ItemDao dao = new ItemDao(em);
+            Item item = dao.buscarPorId(id);
 
-        EntityManager em = JPAUtil.getEntityManager();
-        ItemDao dao = new ItemDao(em);
-        Item item = dao.buscarPorId(id);
+            item.setNomeProduto(txtNome.getText().trim());
+            item.setDescricaoProduto(txtDescricao.getText().trim());
+            item.setValorUnitarioProduto(Double.parseDouble(txtValor.getText().trim()));
+            item.setMarca((Marca) cbMarca.getSelectedItem());
+            item.setCategoria((Categoria) cbCategoria.getSelectedItem());
+            item.setFornecedor((Fornecedor) cbFornecedor.getSelectedItem());
 
-        item.setNomeProduto(txtNome.getText().trim());
-        item.setDescricaoProduto(txtDescricao.getText().trim());
-        item.setValorUnitarioProduto(Double.parseDouble(txtValor.getText().trim()));
-        item.setMarca((Marca) cbMarca.getSelectedItem());
-        item.setCategoria((Categoria) cbCategoria.getSelectedItem());
-        item.setFornecedor((Fornecedor) cbFornecedor.getSelectedItem());
+            em.getTransaction().begin();
+            dao.atualizar(item);
+            em.getTransaction().commit();
+            em.close();
 
-        em.getTransaction().begin();
-        em.merge(item);
-        em.getTransaction().commit();
-        em.close();
-
-        JOptionPane.showMessageDialog(this, "Item atualizado com sucesso!");
-        carregarItens();
+            JOptionPane.showMessageDialog(this, "Item atualizado com sucesso!");
+            limparCampos();
+            carregarItens();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao alterar item: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void removerItem() {
@@ -208,17 +225,23 @@ public class ItemForm extends JPanel {
         int confirm = JOptionPane.showConfirmDialog(this, "Deseja realmente remover este item?", "Confirmação", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return;
 
-        int id = (int) tableModel.getValueAt(row, 0);
-        EntityManager em = JPAUtil.getEntityManager();
-        Item item = new ItemDao(em).buscarPorId(id);
+        try {
+            int id = (int) tableModel.getValueAt(row, 0);
+            EntityManager em = JPAUtil.getEntityManager();
+            ItemDao dao = new ItemDao(em);
+            Item item = dao.buscarPorId(id);
 
-        em.getTransaction().begin();
-        em.remove(item);
-        em.getTransaction().commit();
-        em.close();
+            em.getTransaction().begin();
+            dao.remover(item);
+            em.getTransaction().commit();
+            em.close();
 
-        JOptionPane.showMessageDialog(this, "Item removido com sucesso!");
-        carregarItens();
+            JOptionPane.showMessageDialog(this, "Item removido com sucesso!");
+            limparCampos();
+            carregarItens();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao remover item: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void preencherCamposComSelecionado(ListSelectionEvent e) {

@@ -133,7 +133,7 @@ public class MainFrame extends JFrame {
         setVisible(true);
     }
 
-    private void abrirTela(JPanel tela) {
+    public void abrirTela(JPanel tela) {
         contentPanel.removeAll();
         contentPanel.add(tela, BorderLayout.CENTER);
         contentPanel.revalidate();

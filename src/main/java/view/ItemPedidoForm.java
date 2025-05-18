@@ -10,19 +10,22 @@ import util.JPAUtil;
 
 import javax.persistence.EntityManager;
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
+import static util.EstiloSistema.*;
+
 public class ItemPedidoForm extends JPanel {
-    private Pedido pedidoFiltrado;
-    private JComboBox<Pedido> cbPedido;
-    private JComboBox<Item> cbItem;
-    private JTextField txtQuantidade, txtValor, txtValorTotal;
-    private JTable tabela;
-    private DefaultTableModel tableModel;
-    private JButton btnCadastrar, btnBuscar, btnAlterar, btnRemover;
+    private final JComboBox<Pedido> cbPedido = new JComboBox<>();
+    private final JComboBox<Item> cbItem = new JComboBox<>();
+    private final JTextField txtQuantidade = new JTextField(10);
+    private final JTextField txtValor = new JTextField(10);
+    private final JTextField txtValorTotal = new JTextField(10);
+    private final JTable tabela;
+    private final DefaultTableModel tableModel;
+
+    private final Pedido pedidoFiltrado;
 
     public ItemPedidoForm() {
         this(null);
@@ -30,82 +33,85 @@ public class ItemPedidoForm extends JPanel {
 
     public ItemPedidoForm(Pedido pedidoFiltrado) {
         this.pedidoFiltrado = pedidoFiltrado;
-        initUI();
-    }
-
-    private void initUI() {
         setLayout(new BorderLayout(10, 10));
+        setBackground(COR_FUNDO);
 
         JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(COR_FUNDO);
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridx = gbc.gridy = 0;
 
-        cbPedido = new JComboBox<>();
-        cbItem = new JComboBox<>();
-        txtQuantidade = new JTextField(10);
-        txtValor = new JTextField(10);
-        txtValorTotal = new JTextField(10);
+        int linha = 0;
+
+        adicionarCampo(formPanel, gbc, linha++, "Pedido:", cbPedido);
+        adicionarCampo(formPanel, gbc, linha++, "Produto:", cbItem);
+        adicionarCampo(formPanel, gbc, linha++, "Quantidade:", txtQuantidade);
+        adicionarCampo(formPanel, gbc, linha++, "Valor Unitário:", txtValor);
+        adicionarCampo(formPanel, gbc, linha++, "Valor Total (Banco):", txtValorTotal);
+
+        aplicarEstiloCampo(txtQuantidade);
+        aplicarEstiloCampo(txtValor);
+        aplicarEstiloCampo(txtValorTotal);
         txtValorTotal.setEditable(false);
 
         carregarComboBox();
 
         cbItem.addActionListener(e -> atualizarValorUnitario());
 
-        btnCadastrar = new JButton("Cadastrar");
-        btnBuscar = new JButton("Buscar");
-        btnAlterar = new JButton("Alterar");
-        btnRemover = new JButton("Remover");
+        JButton btnCadastrar = new JButton("Cadastrar");
+        JButton btnBuscar = new JButton("Buscar");
+        JButton btnAlterar = new JButton("Alterar");
+        JButton btnRemover = new JButton("Remover");
 
-        formPanel.add(new JLabel("Pedido:"), gbc);
-        gbc.gridx++;
-        formPanel.add(cbPedido, gbc);
-        gbc.gridx = 0; gbc.gridy++;
+        aplicarEstiloBotao(btnCadastrar);
+        aplicarEstiloBotao(btnBuscar);
+        aplicarEstiloBotao(btnAlterar);
+        aplicarEstiloBotao(btnRemover);
 
-        formPanel.add(new JLabel("Produto:"), gbc);
-        gbc.gridx++;
-        formPanel.add(cbItem, gbc);
-        gbc.gridx = 0; gbc.gridy++;
-
-        formPanel.add(new JLabel("Quantidade:"), gbc);
-        gbc.gridx++;
-        formPanel.add(txtQuantidade, gbc);
-        gbc.gridx = 0; gbc.gridy++;
-
-        formPanel.add(new JLabel("Valor Unitário:"), gbc);
-        gbc.gridx++;
-        formPanel.add(txtValor, gbc);
-        gbc.gridx = 0; gbc.gridy++;
-
-        formPanel.add(new JLabel("Valor Total (Banco):"), gbc);
-        gbc.gridx++;
-        formPanel.add(txtValorTotal, gbc);
-        gbc.gridx = 0; gbc.gridy++;
-
-        gbc.gridwidth = 2;
-        JPanel botoesPanel = new JPanel(new GridLayout(1, 4, 5, 5));
+        JPanel botoesPanel = new JPanel(new GridLayout(1, 4, 10, 0));
+        botoesPanel.setBackground(COR_FUNDO);
         botoesPanel.add(btnCadastrar);
         botoesPanel.add(btnBuscar);
         botoesPanel.add(btnAlterar);
         botoesPanel.add(btnRemover);
+
+        gbc.gridx = 0;
+        gbc.gridy = linha;
+        gbc.gridwidth = 2;
         formPanel.add(botoesPanel, gbc);
+
+        add(formPanel, BorderLayout.NORTH);
 
         tableModel = new DefaultTableModel(new Object[]{"ID", "Produto", "Qtd", "Valor Unitário", "Valor Total", "Pedido"}, 0);
         tabela = new JTable(tableModel);
-        JScrollPane scrollPane = new JScrollPane(tabela);
-
-        add(formPanel, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
+        add(new JScrollPane(tabela), BorderLayout.CENTER);
 
         btnCadastrar.addActionListener(e -> salvarItemPedido());
         btnBuscar.addActionListener(e -> buscarItensPorPedido());
         btnAlterar.addActionListener(e -> alterarItemPedido());
         btnRemover.addActionListener(e -> removerItemPedido());
 
-        tabela.getSelectionModel().addListSelectionListener(this::preencherCamposComSelecionado);
+        tabela.getSelectionModel().addListSelectionListener(e -> preencherCamposComSelecionado());
 
-        carregarItemPedidos();
+        if (pedidoFiltrado != null) {
+            cbPedido.setSelectedItem(pedidoFiltrado);
+            carregarItensDoPedido(pedidoFiltrado);
+        } else {
+            carregarItemPedidos();
+        }
+    }
+
+    private void adicionarCampo(JPanel panel, GridBagConstraints gbc, int linha, String rotulo, JComponent campo) {
+        gbc.gridx = 0;
+        gbc.gridy = linha;
+        gbc.gridwidth = 1;
+        JLabel label = new JLabel(rotulo);
+        aplicarEstiloLabel(label);
+        panel.add(label, gbc);
+
+        gbc.gridx = 1;
+        panel.add(campo, gbc);
     }
 
     private void carregarComboBox() {
@@ -137,23 +143,36 @@ public class ItemPedidoForm extends JPanel {
     }
 
     private void salvarItemPedido() {
-        Pedido pedido = (Pedido) cbPedido.getSelectedItem();
-        Item item = (Item) cbItem.getSelectedItem();
-        int quantidade = Integer.parseInt(txtQuantidade.getText().trim());
-        double valor = Double.parseDouble(txtValor.getText().trim());
+        try {
+            if (cbPedido.getSelectedIndex() <= 0 ||
+                    cbItem.getSelectedIndex() <= 0 ||
+                    txtQuantidade.getText().trim().isEmpty() ||
+                    txtValor.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Preencha todos os campos obrigatórios.");
+                return;
+            }
 
-        PedidoItem pedidoItem = new PedidoItem(item, pedido, quantidade, valor);
+            Pedido pedido = (Pedido) cbPedido.getSelectedItem();
+            Item item = (Item) cbItem.getSelectedItem();
+            int quantidade = Integer.parseInt(txtQuantidade.getText().trim());
+            double valor = Double.parseDouble(txtValor.getText().trim());
 
-        EntityManager em = JPAUtil.getEntityManager();
-        PedidoItemDao dao = new PedidoItemDao(em);
-        em.getTransaction().begin();
-        dao.cadastrar(pedidoItem);
-        em.getTransaction().commit();
-        em.close();
+            PedidoItem pedidoItem = new PedidoItem(item, pedido, quantidade, valor);
 
-        JOptionPane.showMessageDialog(this, "Item do Pedido cadastrado com sucesso!");
-        limparCampos();
-        carregarItemPedidos();
+            EntityManager em = JPAUtil.getEntityManager();
+            PedidoItemDao dao = new PedidoItemDao(em);
+            em.getTransaction().begin();
+            dao.cadastrar(pedidoItem);
+            em.getTransaction().commit();
+            em.close();
+
+            JOptionPane.showMessageDialog(this, "Item do Pedido cadastrado com sucesso!");
+            limparCampos();
+            carregarItemPedidos();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao cadastrar item: " + ex.getMessage());
+            ex.printStackTrace();
+        }
     }
 
     private void buscarItensPorPedido() {
@@ -168,29 +187,29 @@ public class ItemPedidoForm extends JPanel {
                 JOptionPane.showMessageDialog(this, "Pedido não encontrado.");
                 return;
             }
-
-            List<PedidoItem> itens = new PedidoItemDao(em).buscarPorPedido(pedido);
+            carregarItensDoPedido(pedido);
             em.close();
-
-            tableModel.setRowCount(0);
-            for (PedidoItem pi : itens) {
-                tableModel.addRow(new Object[]{
-                        pi.getIdPedidoItem(),
-                        pi.getItem().getNomeProduto(),
-                        pi.getQuantidadeItem(),
-                        pi.getValorItem(),
-                        pi.getValorTotalItem(),
-                        pi.getPedido().getIdPedido()
-                });
-            }
-
-            if (itens.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Nenhum item encontrado para o pedido informado.");
-            }
 
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "ID inválido. Digite um número inteiro.", "Erro", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void carregarItensDoPedido(Pedido pedido) {
+        EntityManager em = JPAUtil.getEntityManager();
+        List<PedidoItem> itens = new PedidoItemDao(em).buscarPorPedido(pedido);
+        tableModel.setRowCount(0);
+        for (PedidoItem pi : itens) {
+            tableModel.addRow(new Object[]{
+                    pi.getIdPedidoItem(),
+                    pi.getItem().getNomeProduto(),
+                    pi.getQuantidadeItem(),
+                    pi.getValorItem(),
+                    pi.getValorTotalItem(),
+                    pi.getPedido().getIdPedido()
+            });
+        }
+        em.close();
     }
 
     private void carregarItemPedidos() {
@@ -216,24 +235,37 @@ public class ItemPedidoForm extends JPanel {
             JOptionPane.showMessageDialog(this, "Selecione um item do pedido para alterar.");
             return;
         }
-        int id = (int) tableModel.getValueAt(row, 0);
 
-        EntityManager em = JPAUtil.getEntityManager();
-        PedidoItemDao dao = new PedidoItemDao(em);
-        PedidoItem pedidoItem = dao.buscarPorID(id);
+        try {
+            if (cbPedido.getSelectedIndex() <= 0 ||
+                    cbItem.getSelectedIndex() <= 0 ||
+                    txtQuantidade.getText().trim().isEmpty() ||
+                    txtValor.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Preencha todos os campos obrigatórios.");
+                return;
+            }
 
-        pedidoItem.setPedido((Pedido) cbPedido.getSelectedItem());
-        pedidoItem.setItem((Item) cbItem.getSelectedItem());
-        pedidoItem.setQuantidadeItem(Integer.parseInt(txtQuantidade.getText().trim()));
-        pedidoItem.setValorItem(Double.parseDouble(txtValor.getText().trim()));
+            int id = (int) tableModel.getValueAt(row, 0);
+            EntityManager em = JPAUtil.getEntityManager();
+            PedidoItemDao dao = new PedidoItemDao(em);
+            PedidoItem pedidoItem = dao.buscarPorID(id);
 
-        em.getTransaction().begin();
-        dao.alterar(pedidoItem);
-        em.getTransaction().commit();
-        em.close();
+            pedidoItem.setPedido((Pedido) cbPedido.getSelectedItem());
+            pedidoItem.setItem((Item) cbItem.getSelectedItem());
+            pedidoItem.setQuantidadeItem(Integer.parseInt(txtQuantidade.getText().trim()));
+            pedidoItem.setValorItem(Double.parseDouble(txtValor.getText().trim()));
 
-        JOptionPane.showMessageDialog(this, "Item do pedido alterado com sucesso!");
-        carregarItemPedidos();
+            em.getTransaction().begin();
+            dao.alterar(pedidoItem);
+            em.getTransaction().commit();
+            em.close();
+
+            JOptionPane.showMessageDialog(this, "Item do pedido alterado com sucesso!");
+            carregarItemPedidos();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Erro ao alterar item: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void removerItemPedido() {
@@ -242,6 +274,9 @@ public class ItemPedidoForm extends JPanel {
             JOptionPane.showMessageDialog(this, "Selecione um item do pedido para remover.");
             return;
         }
+
+        int confirm = JOptionPane.showConfirmDialog(this, "Deseja realmente remover este item?", "Confirmação", JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) return;
 
         int id = (int) tableModel.getValueAt(row, 0);
         EntityManager em = JPAUtil.getEntityManager();
@@ -256,7 +291,7 @@ public class ItemPedidoForm extends JPanel {
         carregarItemPedidos();
     }
 
-    private void preencherCamposComSelecionado(ListSelectionEvent e) {
+    private void preencherCamposComSelecionado() {
         int row = tabela.getSelectedRow();
         if (row != -1) {
             txtQuantidade.setText(tableModel.getValueAt(row, 2).toString());

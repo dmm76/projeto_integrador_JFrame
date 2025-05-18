@@ -6,128 +6,133 @@ import util.JPAUtil;
 
 import javax.persistence.EntityManager;
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
+import static util.EstiloSistema.*;
+
 public class FornecedorForm extends JPanel {
 
-    private JTextField txtNome, txtCnpj, txtEmail, txtTelefone, txtEndereco;
-    private JTable tabela;
-    private DefaultTableModel tableModel;
-    private JButton btnCadastrar, btnBuscar, btnAlterar, btnRemover;
+    private final JTextField txtNome = new JTextField(20);
+    private final JTextField txtCnpj = new JTextField(20);
+    private final JTextField txtEmail = new JTextField(20);
+    private final JTextField txtTelefone = new JTextField(20);
+    private final JTextField txtEndereco = new JTextField(20);
+    private final JTable tabela;
+    private final DefaultTableModel tableModel;
+    private final JButton btnCadastrar = new JButton("Cadastrar");
+    private final JButton btnBuscar = new JButton("Buscar");
+    private final JButton btnAlterar = new JButton("Alterar");
+    private final JButton btnRemover = new JButton("Remover");
 
     public FornecedorForm() {
         setLayout(new BorderLayout(10, 10));
-
-        txtNome = new JTextField(20);
-        txtCnpj = new JTextField(20);
-        txtEmail = new JTextField(20);
-        txtTelefone = new JTextField(20);
-        txtEndereco = new JTextField(20);
-
-        btnCadastrar = new JButton("Cadastrar");
-        btnBuscar = new JButton("Buscar");
-        btnAlterar = new JButton("Alterar");
-        btnRemover = new JButton("Remover");
+        setBackground(COR_FUNDO);
 
         JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(COR_FUNDO);
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Nome:"), gbc);
-        gbc.gridx = 1;
-        formPanel.add(txtNome, gbc);
+        int linha = 0;
+        adicionarCampo(formPanel, "Nome:", txtNome, gbc, linha++);
+        adicionarCampo(formPanel, "CNPJ:", txtCnpj, gbc, linha++);
+        adicionarCampo(formPanel, "Email:", txtEmail, gbc, linha++);
+        adicionarCampo(formPanel, "Telefone:", txtTelefone, gbc, linha++);
+        adicionarCampo(formPanel, "Endereço:", txtEndereco, gbc, linha++);
 
-        gbc.gridx = 0; gbc.gridy++;
-        formPanel.add(new JLabel("CNPJ:"), gbc);
-        gbc.gridx = 1;
-        formPanel.add(txtCnpj, gbc);
+        aplicarEstiloCampo(txtNome);
+        aplicarEstiloCampo(txtCnpj);
+        aplicarEstiloCampo(txtEmail);
+        aplicarEstiloCampo(txtTelefone);
+        aplicarEstiloCampo(txtEndereco);
 
-        gbc.gridx = 0; gbc.gridy++;
-        formPanel.add(new JLabel("Email:"), gbc);
-        gbc.gridx = 1;
-        formPanel.add(txtEmail, gbc);
+        aplicarEstiloBotao(btnCadastrar);
+        aplicarEstiloBotao(btnBuscar);
+        aplicarEstiloBotao(btnAlterar);
+        aplicarEstiloBotao(btnRemover);
 
-        gbc.gridx = 0; gbc.gridy++;
-        formPanel.add(new JLabel("Endereço:"), gbc);
-        gbc.gridx = 1;
-        formPanel.add(txtEndereco, gbc);
-
-        gbc.gridx = 0; gbc.gridy++;
-        formPanel.add(new JLabel("Telefone:"), gbc);
-        gbc.gridx = 1;
-        formPanel.add(txtTelefone, gbc);
-
-        gbc.gridx = 0; gbc.gridy++;
-        gbc.gridwidth = 2;
-        JPanel botoesPanel = new JPanel(new GridLayout(1, 4, 5, 5));
+        JPanel botoesPanel = new JPanel(new GridLayout(1, 4, 10, 0));
+        botoesPanel.setBackground(COR_FUNDO);
         botoesPanel.add(btnCadastrar);
         botoesPanel.add(btnBuscar);
         botoesPanel.add(btnAlterar);
         botoesPanel.add(btnRemover);
+
+        gbc.gridx = 0;
+        gbc.gridy = linha;
+        gbc.gridwidth = 2;
         formPanel.add(botoesPanel, gbc);
+
+        add(formPanel, BorderLayout.NORTH);
 
         tableModel = new DefaultTableModel(new Object[]{"ID", "Nome", "CNPJ", "Email", "Telefone", "Endereço"}, 0);
         tabela = new JTable(tableModel);
-        JScrollPane scrollPane = new JScrollPane(tabela);
-
-        add(formPanel, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
+        add(new JScrollPane(tabela), BorderLayout.CENTER);
 
         btnCadastrar.addActionListener(e -> salvarFornecedor());
         btnBuscar.addActionListener(e -> carregarFornecedores());
         btnAlterar.addActionListener(e -> alterarFornecedor());
         btnRemover.addActionListener(e -> removerFornecedor());
 
-        tabela.getSelectionModel().addListSelectionListener((ListSelectionEvent e) -> {
-            if (!e.getValueIsAdjusting() && tabela.getSelectedRow() != -1) {
-                int row = tabela.getSelectedRow();
-                txtNome.setText((String) tableModel.getValueAt(row, 1));
-                txtCnpj.setText((String) tableModel.getValueAt(row, 2));
-                txtEmail.setText((String) tableModel.getValueAt(row, 3));
-                txtTelefone.setText((String) tableModel.getValueAt(row, 4));
-                txtEndereco.setText((String) tableModel.getValueAt(row, 5));
-            }
-        });
-
+        tabela.getSelectionModel().addListSelectionListener(e -> preencherCamposComSelecionado());
         carregarFornecedores();
     }
 
+    private void adicionarCampo(JPanel panel, String rotulo, JTextField campo, GridBagConstraints gbc, int linha) {
+        gbc.gridx = 0;
+        gbc.gridy = linha;
+        gbc.gridwidth = 1;
+        JLabel label = new JLabel(rotulo);
+        aplicarEstiloLabel(label);
+        panel.add(label, gbc);
+
+        gbc.gridx = 1;
+        panel.add(campo, gbc);
+    }
+
     private void salvarFornecedor() {
-        String nome = txtNome.getText().trim();
-        String cnpj = txtCnpj.getText().trim();
-        String email = txtEmail.getText().trim();
-        String telefone = txtTelefone.getText().trim();
-        String endereco = txtEndereco.getText().trim();
+        try {
+            if (txtNome.getText().trim().isEmpty() ||
+                    txtCnpj.getText().trim().isEmpty() ||
+                    txtEmail.getText().trim().isEmpty() ||
+                    txtTelefone.getText().trim().isEmpty() ||
+                    txtEndereco.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Preencha todos os campos obrigatórios.");
+                return;
+            }
 
-        if (nome.isEmpty() || email.isEmpty() || telefone.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Nome, email e telefone são obrigatórios.");
-            return;
+            Fornecedor fornecedor = new Fornecedor(
+                    txtNome.getText().trim(),
+                    txtCnpj.getText().trim(),
+                    txtEmail.getText().trim(),
+                    txtTelefone.getText().trim(),
+                    txtEndereco.getText().trim()
+            );
+
+            EntityManager em = JPAUtil.getEntityManager();
+            FornecedorDao dao = new FornecedorDao(em);
+
+            em.getTransaction().begin();
+            dao.cadastrar(fornecedor);
+            em.getTransaction().commit();
+            em.close();
+
+            JOptionPane.showMessageDialog(this, "Fornecedor cadastrado com sucesso!");
+            limparCampos();
+            carregarFornecedores();
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Erro ao salvar fornecedor: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
-
-        EntityManager em = JPAUtil.getEntityManager();
-        FornecedorDao dao = new FornecedorDao(em);
-
-        Fornecedor fornecedor = new Fornecedor(nome, cnpj, email, telefone, endereco);
-        em.getTransaction().begin();
-        dao.cadastrar(fornecedor);
-        em.getTransaction().commit();
-        em.close();
-
-        JOptionPane.showMessageDialog(this, "Fornecedor cadastrado com sucesso!");
-        limparCampos();
-        carregarFornecedores();
     }
 
     private void carregarFornecedores() {
         tableModel.setRowCount(0);
         EntityManager em = JPAUtil.getEntityManager();
-        FornecedorDao dao = new FornecedorDao(em);
-        List<Fornecedor> lista = dao.buscarTodos();
+        List<Fornecedor> lista = new FornecedorDao(em).buscarTodos();
         for (Fornecedor f : lista) {
             tableModel.addRow(new Object[]{
                     f.getIdFornecedor(),
@@ -148,22 +153,29 @@ public class FornecedorForm extends JPanel {
             return;
         }
 
-        int id = (int) tableModel.getValueAt(row, 0);
-        EntityManager em = JPAUtil.getEntityManager();
-        FornecedorDao dao = new FornecedorDao(em);
-        Fornecedor fornecedor = dao.buscarPorID(id);
+        try {
+            int id = (int) tableModel.getValueAt(row, 0);
+            EntityManager em = JPAUtil.getEntityManager();
+            FornecedorDao dao = new FornecedorDao(em);
+            Fornecedor fornecedor = dao.buscarPorID(id);
 
-        em.getTransaction().begin();
-        fornecedor.setNomeFornecedor(txtNome.getText().trim());
-        fornecedor.setCnpjFornecedor(txtCnpj.getText().trim());
-        fornecedor.setEmailFornecedor(txtEmail.getText().trim());
-        fornecedor.setTelefoneFornecedor(txtTelefone.getText().trim());
-        fornecedor.setEnderecoFornecedor(txtEndereco.getText().trim());
-        em.getTransaction().commit();
-        em.close();
+            fornecedor.setNomeFornecedor(txtNome.getText().trim());
+            fornecedor.setCnpjFornecedor(txtCnpj.getText().trim());
+            fornecedor.setEmailFornecedor(txtEmail.getText().trim());
+            fornecedor.setTelefoneFornecedor(txtTelefone.getText().trim());
+            fornecedor.setEnderecoFornecedor(txtEndereco.getText().trim());
 
-        JOptionPane.showMessageDialog(this, "Fornecedor atualizado com sucesso!");
-        carregarFornecedores();
+            em.getTransaction().begin();
+            dao.alterar(fornecedor);
+            em.getTransaction().commit();
+            em.close();
+
+            JOptionPane.showMessageDialog(this, "Fornecedor atualizado com sucesso!");
+            limparCampos();
+            carregarFornecedores();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Erro ao alterar fornecedor: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void removerFornecedor() {
@@ -176,18 +188,34 @@ public class FornecedorForm extends JPanel {
         int confirm = JOptionPane.showConfirmDialog(this, "Deseja realmente remover este fornecedor?", "Confirmação", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return;
 
-        int id = (int) tableModel.getValueAt(row, 0);
-        EntityManager em = JPAUtil.getEntityManager();
-        FornecedorDao dao = new FornecedorDao(em);
-        Fornecedor fornecedor = dao.buscarPorID(id);
+        try {
+            int id = (int) tableModel.getValueAt(row, 0);
+            EntityManager em = JPAUtil.getEntityManager();
+            FornecedorDao dao = new FornecedorDao(em);
+            Fornecedor fornecedor = dao.buscarPorID(id);
 
-        em.getTransaction().begin();
-        dao.remover(fornecedor);
-        em.getTransaction().commit();
-        em.close();
+            em.getTransaction().begin();
+            dao.remover(fornecedor);
+            em.getTransaction().commit();
+            em.close();
 
-        JOptionPane.showMessageDialog(this, "Fornecedor removido com sucesso!");
-        carregarFornecedores();
+            JOptionPane.showMessageDialog(this, "Fornecedor removido com sucesso!");
+            limparCampos();
+            carregarFornecedores();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Erro ao remover fornecedor: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void preencherCamposComSelecionado() {
+        int row = tabela.getSelectedRow();
+        if (row != -1) {
+            txtNome.setText((String) tableModel.getValueAt(row, 1));
+            txtCnpj.setText((String) tableModel.getValueAt(row, 2));
+            txtEmail.setText((String) tableModel.getValueAt(row, 3));
+            txtTelefone.setText((String) tableModel.getValueAt(row, 4));
+            txtEndereco.setText((String) tableModel.getValueAt(row, 5));
+        }
     }
 
     private void limparCampos() {

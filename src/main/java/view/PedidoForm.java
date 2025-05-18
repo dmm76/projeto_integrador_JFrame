@@ -89,11 +89,30 @@ public class PedidoForm extends JPanel {
         add(new JScrollPane(tabela), BorderLayout.CENTER);
 
         btnCadastrar.addActionListener(e -> salvarPedido());
-        btnBuscar.addActionListener(e -> carregarPedidos());
         btnAlterar.addActionListener(e -> alterarPedido());
         btnRemover.addActionListener(e -> removerPedido());
         btnRelatorio.addActionListener(e -> gerarRelatorioPedidos());
         tabela.getSelectionModel().addListSelectionListener(e -> preencherCamposComSelecionado());
+        btnBuscar.addActionListener(e -> {
+            int selectedRow = tabela.getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(this, "Selecione um pedido para visualizar os itens.");
+                return;
+            }
+
+            int id = (int) tableModel.getValueAt(selectedRow, 0);
+            EntityManager em = JPAUtil.getEntityManager();
+            Pedido pedido = new PedidoDao(em).buscarPorID(id);
+            em.close();
+
+            // Obtém a janela pai (MainFrame)
+            Window window = SwingUtilities.getWindowAncestor(this);
+            if (window instanceof MainFrame mainFrame) {
+                mainFrame.abrirTela(new ItemPedidoForm(pedido));
+            } else {
+                JOptionPane.showMessageDialog(this, "Não foi possível abrir a tela dentro do sistema.");
+            }
+        });
 
         txtData.setText(sdf.format(new Date()));
         carregarPedidos();

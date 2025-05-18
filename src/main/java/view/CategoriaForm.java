@@ -6,57 +6,79 @@ import util.JPAUtil;
 
 import javax.persistence.EntityManager;
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
+import static util.EstiloSistema.*;
+
 public class CategoriaForm extends JPanel {
 
-    private JTextField txtDescricao;
-    private JTable tabela;
-    private DefaultTableModel tableModel;
-    private JButton btnCadastrar, btnBuscar, btnAlterar, btnRemover;
+    private final JTextField txtDescricao = new JTextField(15);
+    private final JTable tabela;
+    private final DefaultTableModel tableModel;
+    private final JButton btnCadastrar = new JButton("Cadastrar");
+    private final JButton btnBuscar = new JButton("Buscar");
+    private final JButton btnAlterar = new JButton("Alterar");
+    private final JButton btnRemover = new JButton("Remover");
+    private final JButton btnLimpar = new JButton("Limpar");
 
     public CategoriaForm() {
         setLayout(new BorderLayout(10, 10));
+        setBackground(COR_FUNDO);
 
-        JPanel formPanel = new JPanel(new FlowLayout());
-        txtDescricao = new JTextField(20);
-        formPanel.add(new JLabel("Descrição:"));
-        formPanel.add(txtDescricao);
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(COR_FUNDO);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 10, 8, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        btnCadastrar = new JButton("Cadastrar");
-        btnBuscar = new JButton("Buscar");
-        btnAlterar = new JButton("Alterar");
-        btnRemover = new JButton("Remover");
+        aplicarEstiloCampo(txtDescricao);
+        aplicarEstiloBotao(btnCadastrar);
+        aplicarEstiloBotao(btnBuscar);
+        aplicarEstiloBotao(btnAlterar);
+        aplicarEstiloBotao(btnRemover);
+        aplicarEstiloBotao(btnLimpar);
 
-        formPanel.add(btnCadastrar);
-        formPanel.add(btnBuscar);
-        formPanel.add(btnAlterar);
-        formPanel.add(btnRemover);
+        JLabel lblDescricao = new JLabel("Descrição");
+        aplicarEstiloLabel(lblDescricao);
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        formPanel.add(lblDescricao, gbc);
+
+        gbc.gridx = 1;
+        formPanel.add(txtDescricao, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        JPanel botoesPanel = new JPanel(new GridLayout(1, 5, 10, 0));
+        botoesPanel.setBackground(COR_FUNDO);
+        botoesPanel.add(btnCadastrar);
+        botoesPanel.add(btnBuscar);
+        botoesPanel.add(btnAlterar);
+        botoesPanel.add(btnRemover);
+        botoesPanel.add(btnLimpar);
+        formPanel.add(botoesPanel, gbc);
+
+        add(formPanel, BorderLayout.NORTH);
 
         tableModel = new DefaultTableModel(new Object[]{"ID", "Descrição"}, 0);
         tabela = new JTable(tableModel);
-        JScrollPane scrollPane = new JScrollPane(tabela);
-
-        add(formPanel, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
+        add(new JScrollPane(tabela), BorderLayout.CENTER);
 
         // Ações
         btnCadastrar.addActionListener(e -> salvarCategoria());
         btnBuscar.addActionListener(e -> carregarCategorias());
         btnAlterar.addActionListener(e -> alterarCategoria());
         btnRemover.addActionListener(e -> removerCategoria());
+        btnLimpar.addActionListener(e -> limparCampos());
 
-        // Ação para preencher campo ao selecionar linha
-        tabela.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            public void valueChanged(ListSelectionEvent e) {
-                int selectedRow = tabela.getSelectedRow();
-                if (selectedRow >= 0) {
-                    txtDescricao.setText(tableModel.getValueAt(selectedRow, 1).toString());
-                }
+        tabela.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                preencherCamposComSelecionado();
+                btnCadastrar.setEnabled(false);
             }
         });
 
@@ -80,7 +102,7 @@ public class CategoriaForm extends JPanel {
         em.close();
 
         JOptionPane.showMessageDialog(this, "Categoria cadastrada com sucesso!");
-        txtDescricao.setText("");
+        limparCampos();
         carregarCategorias();
     }
 
@@ -102,24 +124,24 @@ public class CategoriaForm extends JPanel {
             return;
         }
 
-        int id = (int) tableModel.getValueAt(selectedRow, 0);
         String novaDescricao = txtDescricao.getText().trim();
-
         if (novaDescricao.isEmpty()) {
             JOptionPane.showMessageDialog(this, "A nova descrição não pode estar vazia.");
             return;
         }
 
+        int id = (int) tableModel.getValueAt(selectedRow, 0);
         EntityManager em = JPAUtil.getEntityManager();
         CategoriaDao dao = new CategoriaDao(em);
-
         Categoria categoria = dao.buscarPorID(id);
+
         em.getTransaction().begin();
         categoria.setDescricao(novaDescricao);
         em.getTransaction().commit();
         em.close();
 
         JOptionPane.showMessageDialog(this, "Categoria atualizada com sucesso!");
+        limparCampos();
         carregarCategorias();
     }
 
@@ -144,6 +166,20 @@ public class CategoriaForm extends JPanel {
         em.close();
 
         JOptionPane.showMessageDialog(this, "Categoria removida com sucesso!");
+        limparCampos();
         carregarCategorias();
+    }
+
+    private void preencherCamposComSelecionado() {
+        int row = tabela.getSelectedRow();
+        if (row != -1) {
+            txtDescricao.setText(tableModel.getValueAt(row, 1).toString());
+        }
+    }
+
+    private void limparCampos() {
+        txtDescricao.setText("");
+        tabela.clearSelection();
+        btnCadastrar.setEnabled(true);
     }
 }
