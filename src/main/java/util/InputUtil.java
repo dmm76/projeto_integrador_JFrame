@@ -41,13 +41,6 @@ public class InputUtil {
         }
     }
 
-    /**
-     * Solicita um ID inteiro com uma mensagem extra (como uma lista de opções).
-     *
-     * @param mensagemLista A lista ou título exibido antes do input
-     * @param mensagemPrompt A mensagem abaixo da lista solicitando o ID
-     * @return o ID digitado, ou null se cancelado ou inválido
-     */
     public static Integer solicitarIdComMensagem(String mensagemLista, String mensagemPrompt) {
         String input = JOptionPane.showInputDialog(null, mensagemLista + "\n" + mensagemPrompt);
         if (input == null || input.trim().isEmpty()) {

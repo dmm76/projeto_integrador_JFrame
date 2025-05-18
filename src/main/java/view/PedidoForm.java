@@ -7,104 +7,108 @@ import dao.PedidoItemDao;
 import model.Cliente;
 import model.FormaPagamento;
 import model.Pedido;
-import util.JPAUtil;
 import model.PedidoItem;
+import util.JPAUtil;
 
 import javax.persistence.EntityManager;
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.io.File;
+import java.io.PrintWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import static util.EstiloSistema.*;
+
 public class PedidoForm extends JPanel {
-
-    private JTextField txtData, txtStatus, txtValor;
-    private JComboBox<Cliente> cbCliente;
-    private JComboBox<FormaPagamento> cbFormaPagamento;
-    private JTable tabela;
-    private DefaultTableModel tableModel;
-    private JButton btnCadastrar, btnBuscar, btnAlterar, btnRemover, btnRelatorio;
-
-    private SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+    private final JTextField txtData = new JTextField(20);
+    private final JTextField txtStatus = new JTextField(20);
+    private final JTextField txtValor = new JTextField(10);
+    private final JComboBox<Cliente> cbCliente = new JComboBox<>();
+    private final JComboBox<FormaPagamento> cbFormaPagamento = new JComboBox<>();
+    private final JTable tabela;
+    private final DefaultTableModel tableModel;
+    private final SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
 
     public PedidoForm() {
         setLayout(new BorderLayout(10, 10));
+        setBackground(COR_FUNDO);
 
         JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(COR_FUNDO);
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridx = gbc.gridy = 0;
 
-        txtData = new JTextField(20);
-        txtStatus = new JTextField(20);
-        txtValor = new JTextField(10);
-        cbCliente = new JComboBox<>();
-        cbFormaPagamento = new JComboBox<>();
+        int linha = 0;
+
+        adicionarCampo(formPanel, gbc, linha++, "Data (dd-MM-yyyy):", txtData);
+        adicionarCampo(formPanel, gbc, linha++, "Status:", txtStatus);
+        adicionarCampo(formPanel, gbc, linha++, "Valor Total:", txtValor);
+        adicionarCampo(formPanel, gbc, linha++, "Cliente:", cbCliente);
+        adicionarCampo(formPanel, gbc, linha++, "Forma de Pagamento:", cbFormaPagamento);
+
+        aplicarEstiloCampo(txtData);
+        aplicarEstiloCampo(txtStatus);
+        aplicarEstiloCampo(txtValor);
 
         carregarComboBox();
 
-        btnCadastrar = new JButton("Cadastrar");
-        btnBuscar = new JButton("Buscar");
-        btnAlterar = new JButton("Alterar");
-        btnRemover = new JButton("Remover");
-        btnRelatorio = new JButton("Relatório");
+        JButton btnCadastrar = new JButton("Cadastrar");
+        JButton btnBuscar = new JButton("Buscar");
+        JButton btnAlterar = new JButton("Alterar");
+        JButton btnRemover = new JButton("Remover");
+        JButton btnRelatorio = new JButton("Relatório");
 
-        formPanel.add(new JLabel("Data (dd-MM-yyyy):"), gbc);
-        gbc.gridx++;
-        formPanel.add(txtData, gbc);
-        gbc.gridx = 0; gbc.gridy++;
+        aplicarEstiloBotao(btnCadastrar);
+        aplicarEstiloBotao(btnBuscar);
+        aplicarEstiloBotao(btnAlterar);
+        aplicarEstiloBotao(btnRemover);
+        aplicarEstiloBotao(btnRelatorio);
 
-        formPanel.add(new JLabel("Status:"), gbc);
-        gbc.gridx++;
-        formPanel.add(txtStatus, gbc);
-        gbc.gridx = 0; gbc.gridy++;
-
-        formPanel.add(new JLabel("Valor Total:"), gbc);
-        gbc.gridx++;
-        formPanel.add(txtValor, gbc);
-        gbc.gridx = 0; gbc.gridy++;
-
-        formPanel.add(new JLabel("Cliente:"), gbc);
-        gbc.gridx++;
-        formPanel.add(cbCliente, gbc);
-        gbc.gridx = 0; gbc.gridy++;
-
-        formPanel.add(new JLabel("Forma de Pagamento:"), gbc);
-        gbc.gridx++;
-        formPanel.add(cbFormaPagamento, gbc);
-        gbc.gridx = 0; gbc.gridy++;
-
-        gbc.gridwidth = 2;
-        JPanel botoesPanel = new JPanel(new GridLayout(1, 4, 5, 5));
+        JPanel botoesPanel = new JPanel(new GridLayout(1, 5, 10, 0));
+        botoesPanel.setBackground(COR_FUNDO);
         botoesPanel.add(btnCadastrar);
         botoesPanel.add(btnBuscar);
         botoesPanel.add(btnAlterar);
         botoesPanel.add(btnRemover);
         botoesPanel.add(btnRelatorio);
+
+        gbc.gridx = 0;
+        gbc.gridy = linha;
+        gbc.gridwidth = 2;
         formPanel.add(botoesPanel, gbc);
+
+        add(formPanel, BorderLayout.NORTH);
 
         tableModel = new DefaultTableModel(new Object[]{"ID", "Data", "Status", "Valor", "Cliente", "Pagamento"}, 0);
         tabela = new JTable(tableModel);
-        JScrollPane scrollPane = new JScrollPane(tabela);
-
-        add(formPanel, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
+        add(new JScrollPane(tabela), BorderLayout.CENTER);
 
         btnCadastrar.addActionListener(e -> salvarPedido());
         btnBuscar.addActionListener(e -> carregarPedidos());
-
         btnAlterar.addActionListener(e -> alterarPedido());
         btnRemover.addActionListener(e -> removerPedido());
         btnRelatorio.addActionListener(e -> gerarRelatorioPedidos());
+        tabela.getSelectionModel().addListSelectionListener(e -> preencherCamposComSelecionado());
 
-        tabela.getSelectionModel().addListSelectionListener(this::preencherCamposComSelecionado);
-
+        txtData.setText(sdf.format(new Date()));
         carregarPedidos();
+    }
+
+    private void adicionarCampo(JPanel panel, GridBagConstraints gbc, int linha, String rotulo, JComponent campo) {
+        gbc.gridx = 0;
+        gbc.gridy = linha;
+        gbc.gridwidth = 1;
+        JLabel label = new JLabel(rotulo);
+        aplicarEstiloLabel(label);
+        panel.add(label, gbc);
+
+        gbc.gridx = 1;
+        panel.add(campo, gbc);
     }
 
     private void carregarComboBox() {
@@ -122,18 +126,16 @@ public class PedidoForm extends JPanel {
 
         new ClienteDao(em).buscarTodos().forEach(cbCliente::addItem);
         new FormaPagamentoDao(em).buscarTodos().forEach(cbFormaPagamento::addItem);
-
         em.close();
     }
 
     private void salvarPedido() {
         try {
-            // Verificações de campos obrigatórios
             if (txtData.getText().trim().isEmpty() ||
                     txtStatus.getText().trim().isEmpty() ||
                     txtValor.getText().trim().isEmpty() ||
-                    cbCliente.getSelectedIndex() == -1 ||
-                    cbFormaPagamento.getSelectedIndex() == -1) {
+                    cbCliente.getSelectedIndex() <= 0 ||
+                    cbFormaPagamento.getSelectedIndex() <= 0) {
                 JOptionPane.showMessageDialog(this, "Preencha todos os campos obrigatórios.");
                 return;
             }
@@ -168,7 +170,6 @@ public class PedidoForm extends JPanel {
         }
     }
 
-
     private void carregarPedidos() {
         tableModel.setRowCount(0);
         EntityManager em = JPAUtil.getEntityManager();
@@ -192,15 +193,6 @@ public class PedidoForm extends JPanel {
             JOptionPane.showMessageDialog(this, "Selecione um pedido para alterar.");
             return;
         }
-        if (txtData.getText().trim().isEmpty() ||
-                txtStatus.getText().trim().isEmpty() ||
-                txtValor.getText().trim().isEmpty() ||
-                cbCliente.getSelectedIndex() == -1 ||
-                cbFormaPagamento.getSelectedIndex() == -1) {
-            JOptionPane.showMessageDialog(this, "Preencha todos os campos obrigatórios.");
-            return;
-        }
-
 
         try {
             int id = (int) tableModel.getValueAt(row, 0);
@@ -250,10 +242,8 @@ public class PedidoForm extends JPanel {
 
         try {
             Pedido pedido = pedidoDao.buscarPorID(id);
-
             em.getTransaction().begin();
 
-            // Remove os itens vinculados a este pedido
             List<PedidoItem> itens = em.createQuery(
                             "SELECT i FROM PedidoItem i WHERE i.pedido = :pedido", PedidoItem.class)
                     .setParameter("pedido", pedido)
@@ -263,9 +253,7 @@ public class PedidoForm extends JPanel {
                 itemDao.remover(item);
             }
 
-            // Agora remove o pedido
             pedidoDao.remover(pedido);
-
             em.getTransaction().commit();
 
             JOptionPane.showMessageDialog(this, "Pedido e itens vinculados removidos com sucesso!");
@@ -280,7 +268,36 @@ public class PedidoForm extends JPanel {
         }
     }
 
-    private void preencherCamposComSelecionado(ListSelectionEvent e) {
+    private void gerarRelatorioPedidos() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Salvar Relatório de Pedidos");
+        fileChooser.setSelectedFile(new File("relatorio_pedidos.txt"));
+
+        if (fileChooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
+
+        File file = fileChooser.getSelectedFile();
+
+        try (PrintWriter writer = new PrintWriter(file)) {
+            writer.println("RELATÓRIO DE PEDIDOS");
+            writer.println("---------------------");
+
+            for (int i = 0; i < tableModel.getRowCount(); i++) {
+                writer.println("ID: " + tableModel.getValueAt(i, 0));
+                writer.println("Data: " + tableModel.getValueAt(i, 1));
+                writer.println("Status: " + tableModel.getValueAt(i, 2));
+                writer.println("Valor: R$ " + tableModel.getValueAt(i, 3));
+                writer.println("Cliente: " + tableModel.getValueAt(i, 4));
+                writer.println("Forma de Pagamento: " + tableModel.getValueAt(i, 5));
+                writer.println("---------------------------");
+            }
+
+            JOptionPane.showMessageDialog(this, "Relatório gerado com sucesso em:\n" + file.getAbsolutePath());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao gerar relatório: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void preencherCamposComSelecionado() {
         int row = tabela.getSelectedRow();
         if (row != -1) {
             txtData.setText((String) tableModel.getValueAt(row, 1));
@@ -307,40 +324,10 @@ public class PedidoForm extends JPanel {
     }
 
     private void limparCampos() {
-        txtData.setText("");
+        txtData.setText(sdf.format(new Date()));
         txtStatus.setText("");
         txtValor.setText("");
         cbCliente.setSelectedIndex(0);
         cbFormaPagamento.setSelectedIndex(0);
     }
-    private void gerarRelatorioPedidos() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Salvar Relatório de Pedidos");
-        fileChooser.setSelectedFile(new java.io.File("relatorio_pedidos.txt"));
-
-        int userSelection = fileChooser.showSaveDialog(this);
-        if (userSelection != JFileChooser.APPROVE_OPTION) return;
-
-        java.io.File file = fileChooser.getSelectedFile();
-
-        try (java.io.PrintWriter writer = new java.io.PrintWriter(file)) {
-            writer.println("RELATÓRIO DE PEDIDOS");
-            writer.println("---------------------");
-
-            for (int i = 0; i < tableModel.getRowCount(); i++) {
-                writer.println("ID: " + tableModel.getValueAt(i, 0));
-                writer.println("Data: " + tableModel.getValueAt(i, 1));
-                writer.println("Status: " + tableModel.getValueAt(i, 2));
-                writer.println("Valor: R$ " + tableModel.getValueAt(i, 3));
-                writer.println("Cliente: " + tableModel.getValueAt(i, 4));
-                writer.println("Forma de Pagamento: " + tableModel.getValueAt(i, 5));
-                writer.println("---------------------------");
-            }
-
-            JOptionPane.showMessageDialog(this, "Relatório gerado com sucesso em:\n" + file.getAbsolutePath());
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao gerar relatório: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
 }

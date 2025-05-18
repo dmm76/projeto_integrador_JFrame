@@ -54,4 +54,65 @@ public class EstiloSistema {
         item.setForeground(COR_TEXTO_MENU);
         item.setFont(FONTE_ITEM_MENU);
     }
+
+    //adicionar uma borda leve no botao entrar do menu login
+    public static void destacarBotaoDefault(JButton botao) {
+        botao.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(255, 255, 255), 2),
+                BorderFactory.createEmptyBorder(10, 20, 10, 20)
+        ));
+    }
+    public static void estilizarBotaoMaterialDesign(JButton botao) {
+        botao.setFocusPainted(false);
+        botao.setContentAreaFilled(false);
+        botao.setOpaque(true);
+        botao.setBackground(COR_BOTAO);
+        botao.setForeground(Color.WHITE);
+        botao.setFont(FONTE_BOTAO);
+
+        // Borda padrão
+        botao.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(COR_BOTAO.darker(), 2),
+                BorderFactory.createEmptyBorder(10, 20, 10, 20)
+        ));
+
+        // Efeito de hover (apenas muda cor, não mexe na borda)
+        botao.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                if (!botao.isFocusOwner()) {
+                    botao.setBackground(COR_BOTAO.darker());
+                }
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                if (!botao.isFocusOwner()) {
+                    botao.setBackground(COR_BOTAO);
+                }
+            }
+        });
+
+        // Efeito de foco (destaca borda e mantém cor original)
+        botao.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                botao.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(Color.WHITE, 3),
+                        BorderFactory.createEmptyBorder(10, 20, 10, 20)
+                ));
+                botao.setBackground(COR_BOTAO.darker()); // ⚠️ agora escurece como o hover
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                botao.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(COR_BOTAO.darker(), 2),
+                        BorderFactory.createEmptyBorder(10, 20, 10, 20)
+                ));
+                botao.setBackground(COR_BOTAO);
+            }
+        });
+    }
+
 }

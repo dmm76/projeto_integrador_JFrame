@@ -4,11 +4,8 @@ import static util.EstiloSistema.*;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import javax.imageio.ImageIO;
-
 import model.UsuarioSistema;
+import util.ImagePanelComOpacidade;
 
 public class MainFrame extends JFrame {
     private UsuarioSistema usuarioLogado;
@@ -23,28 +20,7 @@ public class MainFrame extends JFrame {
         setLocationRelativeTo(null);
 
         // Painel com imagem centralizada e opacidade
-        contentPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                try {
-                    BufferedImage imgOriginal = ImageIO.read(new File("src/main/java/util/images/BR_Sistema_LOGO2.png"));
-                    int larguraDesejada = 300;
-                    int alturaDesejada = 300;
-                    Image imagemReduzida = imgOriginal.getScaledInstance(larguraDesejada, alturaDesejada, Image.SCALE_SMOOTH);
-
-                    Graphics2D g2d = (Graphics2D) g.create();
-                    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.2f));
-
-                    int x = (getWidth() - larguraDesejada) / 2;
-                    int y = (getHeight() - alturaDesejada) / 2;
-                    g2d.drawImage(imagemReduzida, x, y, this);
-                    g2d.dispose();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        };
+        contentPanel = new ImagePanelComOpacidade("src/main/java/util/images/BR_Sistema_LOGO2.png");
         contentPanel.setLayout(new BorderLayout());
         contentPanel.setBackground(COR_FUNDO);
         add(contentPanel, BorderLayout.CENTER);
@@ -75,6 +51,7 @@ public class MainFrame extends JFrame {
 
         JMenuItem itemRelatorio = new JMenuItem("Relatório", new ImageIcon("icons/relatorio.png"));
         JMenuItem itemCadastroUsuario = new JMenuItem("Gerenciar Usuários", new ImageIcon("icons/usuarios.png"));
+        JMenuItem itemLogoff = new JMenuItem("Trocar Usuário", new ImageIcon("icons/logoff.png"));
         JMenuItem itemSair = new JMenuItem("Sair", new ImageIcon("icons/sair.png"));
 
         // Padronizar todos os itens de menu
@@ -89,6 +66,7 @@ public class MainFrame extends JFrame {
         aplicarEstiloMenuItem(itemVendas);
         aplicarEstiloMenuItem(itemRelatorio);
         aplicarEstiloMenuItem(itemCadastroUsuario);
+        aplicarEstiloMenuItem(itemLogoff);
         aplicarEstiloMenuItem(itemSair);
 
         // Adicionar aos menus
@@ -103,8 +81,9 @@ public class MainFrame extends JFrame {
         menuPedido.add(itemItensPedido);
         menuPedido.add(itemVendas);
 
-        menuSair.add(itemRelatorio);
         menuSair.add(itemCadastroUsuario);
+        menuSair.add(itemRelatorio);
+        menuSair.add(itemLogoff);
         menuSair.add(itemSair);
 
         // Adicionar menus à barra
@@ -112,6 +91,14 @@ public class MainFrame extends JFrame {
         menuBar.add(menuPedido);
         menuBar.add(menuSair);
         setJMenuBar(menuBar);
+
+        //Adiciono o nome do usuario logado ao menu
+        JLabel usuarioLabel = new JLabel("Usuário: " + usuarioLogado.getNomeUsuario());
+        aplicarEstiloLabel(usuarioLabel); // já deixa com fonte e cor padrão
+        usuarioLabel.setForeground(Color.WHITE); // garante visibilidade no fundo escuro
+
+        menuBar.add(Box.createHorizontalGlue()); // empurra para a direita
+        menuBar.add(usuarioLabel);
 
         // Ações
         itemRelatorio.addActionListener(e -> abrirTela(new RelatorioForm()));
@@ -126,6 +113,10 @@ public class MainFrame extends JFrame {
         itemItensPedido.addActionListener(e -> abrirTela(new ItemPedidoForm()));
         itemVendas.addActionListener(e -> abrirTela(new VendaForm()));
         itemCadastroUsuario.addActionListener(e -> abrirTela(new UsuarioSistemaForm()));
+        itemLogoff.addActionListener(e -> {
+            dispose(); // fecha a janela atual
+            new LoginForm().setVisible(true); // abre nova tela de login
+        });
 
         // Permissões
         if (!usuarioLogado.getPerfilUsuario().equalsIgnoreCase("admin")) {

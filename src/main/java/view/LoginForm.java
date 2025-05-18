@@ -65,16 +65,19 @@ public class LoginForm extends JFrame {
 
         // Botão Entrar
         btnEntrar = new JButton("Entrar");
-        aplicarEstiloBotao(btnEntrar);
+        estilizarBotaoMaterialDesign(btnEntrar);
         btnEntrar.setIcon(new ImageIcon("icons/login.png"));
         gbc.gridy++;
         gbc.gridx = 0;
         gbc.gridwidth = 2;
         panel.add(btnEntrar, gbc);
+        getRootPane().setDefaultButton(btnEntrar);
+        destacarBotaoDefault(btnEntrar);
 
         add(panel);
 
         btnEntrar.addActionListener(e -> autenticar());
+        txtSenha.addActionListener(e -> autenticar());
     }
 
     private void autenticar() {
