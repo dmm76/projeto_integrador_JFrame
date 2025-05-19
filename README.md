@@ -11,7 +11,7 @@
 
 Este repositório contém o projeto de Trabalho de Conclusão de Curso (Projeto Integrador) desenvolvido para a professora **Claudia Tupan**, do curso de **Desenvolvimento de Sistemas - Senac**.
 
-![Diagrama DDR](https://github.com/dmm76/src/main/java/util/images/DDR_Banco.png?raw=true)
+![Diagrama DDR](https://github.com/dmm76/projeto_integrador_JFrame/blob/main/src/main/java/util/images/DDR_Banco.png?raw=true)
 
 
 ## 📌 Descrição
