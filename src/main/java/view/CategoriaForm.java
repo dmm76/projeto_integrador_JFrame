@@ -40,6 +40,13 @@ public class CategoriaForm extends JPanel {
         aplicarEstiloBotao(btnRemover);
         aplicarEstiloBotao(btnLimpar);
 
+        Dimension buttonSize = new Dimension(130, 30);
+        btnCadastrar.setPreferredSize(buttonSize);
+        btnBuscar.setPreferredSize(buttonSize);
+        btnAlterar.setPreferredSize(buttonSize);
+        btnRemover.setPreferredSize(buttonSize);
+        btnLimpar.setPreferredSize(buttonSize);
+
         JLabel lblDescricao = new JLabel("Descrição");
         aplicarEstiloLabel(lblDescricao);
 
@@ -48,14 +55,18 @@ public class CategoriaForm extends JPanel {
         formPanel.add(lblDescricao, gbc);
 
         gbc.gridx = 1;
+        gbc.weightx = 1.0;
         formPanel.add(txtDescricao, gbc);
+
+        gbc.gridx = 2;
+        gbc.weightx = 0;
+        formPanel.add(btnCadastrar, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 1;
-        gbc.gridwidth = 2;
-        JPanel botoesPanel = new JPanel(new GridLayout(1, 5, 10, 0));
+        gbc.gridwidth = 3;
+        JPanel botoesPanel = new JPanel(new GridLayout(1, 4, 10, 0));
         botoesPanel.setBackground(COR_FUNDO);
-        botoesPanel.add(btnCadastrar);
         botoesPanel.add(btnBuscar);
         botoesPanel.add(btnAlterar);
         botoesPanel.add(btnRemover);
@@ -68,12 +79,14 @@ public class CategoriaForm extends JPanel {
         tabela = new JTable(tableModel);
         add(new JScrollPane(tabela), BorderLayout.CENTER);
 
-        // Ações
         btnCadastrar.addActionListener(e -> salvarCategoria());
         btnBuscar.addActionListener(e -> carregarCategorias());
         btnAlterar.addActionListener(e -> alterarCategoria());
         btnRemover.addActionListener(e -> removerCategoria());
-        btnLimpar.addActionListener(e -> limparCampos());
+        btnLimpar.addActionListener(e -> {
+            limparCampos();
+            btnCadastrar.setEnabled(true);
+        });
 
         tabela.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {

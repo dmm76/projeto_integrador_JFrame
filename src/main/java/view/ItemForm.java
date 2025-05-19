@@ -49,7 +49,7 @@ public class ItemForm extends JPanel {
         adicionarCampo(formPanel, "Valor Unitário:", txtValor, gbc, linha++);
         adicionarCampo(formPanel, "Marca:", cbMarca, gbc, linha++);
         adicionarCampo(formPanel, "Categoria:", cbCategoria, gbc, linha++);
-        adicionarCampo(formPanel, "Fornecedor:", cbFornecedor, gbc, linha++);
+        adicionarCampo(formPanel, "Fornecedor:", cbFornecedor, gbc, linha);
 
         aplicarEstiloCampo(txtNome);
         aplicarEstiloCampo(txtDescricao);
@@ -60,19 +60,35 @@ public class ItemForm extends JPanel {
         aplicarEstiloBotao(btnAlterar);
         aplicarEstiloBotao(btnRemover);
 
+        Dimension buttonSize = new Dimension(130, 30);
+        btnCadastrar.setPreferredSize(buttonSize);
+        btnBuscar.setPreferredSize(buttonSize);
+        btnAlterar.setPreferredSize(buttonSize);
+        btnRemover.setPreferredSize(buttonSize);
+
         configurarRenderizadores();
         carregarComboBox();
 
+        gbc.gridx = 2;
+        formPanel.add(btnCadastrar, gbc);
+
+        linha++;
+        gbc.gridx = 0;
+        gbc.gridy = linha;
+        gbc.gridwidth = 3;
         JPanel botoesPanel = new JPanel(new GridLayout(1, 4, 10, 0));
         botoesPanel.setBackground(COR_FUNDO);
-        botoesPanel.add(btnCadastrar);
         botoesPanel.add(btnBuscar);
         botoesPanel.add(btnAlterar);
         botoesPanel.add(btnRemover);
-
-        gbc.gridx = 0;
-        gbc.gridy = linha;
-        gbc.gridwidth = 2;
+        JButton btnLimpar = new JButton("Limpar");
+        aplicarEstiloBotao(btnLimpar);
+        btnLimpar.setPreferredSize(buttonSize);
+        btnLimpar.addActionListener(e -> {
+            limparCampos();
+            btnCadastrar.setEnabled(true);
+        });
+        botoesPanel.add(btnLimpar);
         formPanel.add(botoesPanel, gbc);
 
         add(formPanel, BorderLayout.NORTH);
@@ -86,7 +102,12 @@ public class ItemForm extends JPanel {
         btnAlterar.addActionListener(e -> alterarItem());
         btnRemover.addActionListener(e -> removerItem());
 
-        tabela.getSelectionModel().addListSelectionListener(this::preencherCamposComSelecionado);
+        tabela.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                preencherCamposComSelecionado(e);
+                btnCadastrar.setEnabled(false);
+            }
+        });
         carregarItens();
     }
 
@@ -99,7 +120,9 @@ public class ItemForm extends JPanel {
         panel.add(label, gbc);
 
         gbc.gridx = 1;
+        gbc.weightx = 1.0;
         panel.add(campo, gbc);
+        gbc.weightx = 0;
     }
 
     private void carregarComboBox() {
@@ -245,7 +268,6 @@ public class ItemForm extends JPanel {
     }
 
     private void preencherCamposComSelecionado(ListSelectionEvent e) {
-        if (e.getValueIsAdjusting()) return;
         int row = tabela.getSelectedRow();
         if (row == -1) return;
 
@@ -269,5 +291,7 @@ public class ItemForm extends JPanel {
         cbMarca.setSelectedIndex(0);
         cbCategoria.setSelectedIndex(0);
         cbFornecedor.setSelectedIndex(0);
+        tabela.clearSelection();
+        btnCadastrar.setEnabled(true);
     }
 }

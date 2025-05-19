@@ -1,3 +1,4 @@
+// Refatorado ItemPedidoForm com padrão de estilo e layout consistente
 package view;
 
 import dao.ItemDao;
@@ -25,6 +26,12 @@ public class ItemPedidoForm extends JPanel {
     private final JTable tabela;
     private final DefaultTableModel tableModel;
 
+    private final JButton btnCadastrar = new JButton("Cadastrar");
+    private final JButton btnBuscar = new JButton("Buscar");
+    private final JButton btnAlterar = new JButton("Alterar");
+    private final JButton btnRemover = new JButton("Remover");
+    private final JButton btnLimpar = new JButton("Limpar");
+
     private final Pedido pedidoFiltrado;
 
     public ItemPedidoForm() {
@@ -43,47 +50,50 @@ public class ItemPedidoForm extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         int linha = 0;
-
         adicionarCampo(formPanel, gbc, linha++, "Pedido:", cbPedido);
         adicionarCampo(formPanel, gbc, linha++, "Produto:", cbItem);
         adicionarCampo(formPanel, gbc, linha++, "Quantidade:", txtQuantidade);
         adicionarCampo(formPanel, gbc, linha++, "Valor Unitário:", txtValor);
-        adicionarCampo(formPanel, gbc, linha++, "Valor Total (Banco):", txtValorTotal);
+        adicionarCampo(formPanel, gbc, linha, "Valor Total (Banco):", txtValorTotal);
 
         aplicarEstiloCampo(txtQuantidade);
         aplicarEstiloCampo(txtValor);
         aplicarEstiloCampo(txtValorTotal);
         txtValorTotal.setEditable(false);
 
-        carregarComboBox();
-
-        cbItem.addActionListener(e -> atualizarValorUnitario());
-
-        JButton btnCadastrar = new JButton("Cadastrar");
-        JButton btnBuscar = new JButton("Buscar");
-        JButton btnAlterar = new JButton("Alterar");
-        JButton btnRemover = new JButton("Remover");
-
         aplicarEstiloBotao(btnCadastrar);
         aplicarEstiloBotao(btnBuscar);
         aplicarEstiloBotao(btnAlterar);
         aplicarEstiloBotao(btnRemover);
+        aplicarEstiloBotao(btnLimpar);
 
+        Dimension buttonSize = new Dimension(130, 30);
+        btnCadastrar.setPreferredSize(buttonSize);
+        btnBuscar.setPreferredSize(buttonSize);
+        btnAlterar.setPreferredSize(buttonSize);
+        btnRemover.setPreferredSize(buttonSize);
+        btnLimpar.setPreferredSize(buttonSize);
+
+        cbItem.addActionListener(e -> atualizarValorUnitario());
+
+        gbc.gridx = 2;
+        formPanel.add(btnCadastrar, gbc);
+
+        linha++;
+        gbc.gridx = 0;
+        gbc.gridy = linha;
+        gbc.gridwidth = 3;
         JPanel botoesPanel = new JPanel(new GridLayout(1, 4, 10, 0));
         botoesPanel.setBackground(COR_FUNDO);
-        botoesPanel.add(btnCadastrar);
         botoesPanel.add(btnBuscar);
         botoesPanel.add(btnAlterar);
         botoesPanel.add(btnRemover);
-
-        gbc.gridx = 0;
-        gbc.gridy = linha;
-        gbc.gridwidth = 2;
+        botoesPanel.add(btnLimpar);
         formPanel.add(botoesPanel, gbc);
 
         add(formPanel, BorderLayout.NORTH);
 
-        tableModel = new DefaultTableModel(new Object[]{"ID", "Produto", "Qtd", "Valor Unitário", "Valor Total", "Pedido"}, 0);
+        tableModel = new DefaultTableModel(new Object[]{"ID Item Pedido", "Produto", "Quantidade", "Valor Unitário", "Valor Total", "Pedido"}, 0);
         tabela = new JTable(tableModel);
         add(new JScrollPane(tabela), BorderLayout.CENTER);
 
@@ -91,8 +101,21 @@ public class ItemPedidoForm extends JPanel {
         btnBuscar.addActionListener(e -> buscarItensPorPedido());
         btnAlterar.addActionListener(e -> alterarItemPedido());
         btnRemover.addActionListener(e -> removerItemPedido());
+        btnLimpar.addActionListener(e -> {
+            limparCampos();
+            carregarItemPedidos(); // volta para todos os pedidos
+            btnCadastrar.setEnabled(true);
+        });
 
-        tabela.getSelectionModel().addListSelectionListener(e -> preencherCamposComSelecionado());
+
+        tabela.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                preencherCamposComSelecionado();
+                btnCadastrar.setEnabled(false);
+            }
+        });
+
+        carregarComboBox();
 
         if (pedidoFiltrado != null) {
             cbPedido.setSelectedItem(pedidoFiltrado);
@@ -111,7 +134,9 @@ public class ItemPedidoForm extends JPanel {
         panel.add(label, gbc);
 
         gbc.gridx = 1;
+        gbc.weightx = 1.0;
         panel.add(campo, gbc);
+        gbc.weightx = 0;
     }
 
     private void carregarComboBox() {
@@ -323,5 +348,7 @@ public class ItemPedidoForm extends JPanel {
         txtValorTotal.setText("");
         cbPedido.setSelectedIndex(0);
         cbItem.setSelectedIndex(0);
+        tabela.clearSelection();
+        btnCadastrar.setEnabled(true);
     }
 }

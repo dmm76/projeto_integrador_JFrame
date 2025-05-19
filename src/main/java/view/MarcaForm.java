@@ -7,56 +7,93 @@ import util.JPAUtil;
 import javax.persistence.EntityManager;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
+import static util.EstiloSistema.*;
+
 public class MarcaForm extends JPanel {
 
-    private JTextField txtDescricao;
-    private JTable tabela;
-    private DefaultTableModel tableModel;
-    private JButton btnCadastrar, btnBuscar, btnAlterar, btnRemover;
+    private final JTextField txtDescricao = new JTextField(20);
+    private final JTable tabela;
+    private final DefaultTableModel tableModel;
+    private final JButton btnCadastrar = new JButton("Cadastrar");
+    private final JButton btnBuscar = new JButton("Buscar");
+    private final JButton btnAlterar = new JButton("Alterar");
+    private final JButton btnRemover = new JButton("Remover");
 
     public MarcaForm() {
         setLayout(new BorderLayout(10, 10));
+        setBackground(COR_FUNDO);
 
-        JPanel formPanel = new JPanel(new FlowLayout());
-        txtDescricao = new JTextField(20);
-        formPanel.add(new JLabel("Descrição:"));
-        formPanel.add(txtDescricao);
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(COR_FUNDO);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 10, 8, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        btnCadastrar = new JButton("Cadastrar");
-        btnBuscar = new JButton("Buscar");
-        btnAlterar = new JButton("Alterar");
-        btnRemover = new JButton("Remover");
+        aplicarEstiloCampo(txtDescricao);
+        aplicarEstiloBotao(btnCadastrar);
+        aplicarEstiloBotao(btnBuscar);
+        aplicarEstiloBotao(btnAlterar);
+        aplicarEstiloBotao(btnRemover);
 
-        formPanel.add(btnCadastrar);
-        formPanel.add(btnBuscar);
-        formPanel.add(btnAlterar);
-        formPanel.add(btnRemover);
+        Dimension buttonSize = new Dimension(130, 30);
+        btnCadastrar.setPreferredSize(buttonSize);
+        btnBuscar.setPreferredSize(buttonSize);
+        btnAlterar.setPreferredSize(buttonSize);
+        btnRemover.setPreferredSize(buttonSize);
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        JLabel lbl = new JLabel("Descrição:");
+        aplicarEstiloLabel(lbl);
+        formPanel.add(lbl, gbc);
+
+        gbc.gridx = 1;
+        gbc.weightx = 1.0;
+        formPanel.add(txtDescricao, gbc);
+
+        gbc.gridx = 2;
+        gbc.weightx = 0;
+        formPanel.add(btnCadastrar, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 3;
+        JPanel botoesPanel = new JPanel(new GridLayout(1, 4, 10, 0));
+        botoesPanel.setBackground(COR_FUNDO);
+        botoesPanel.add(btnBuscar);
+        botoesPanel.add(btnAlterar);
+        botoesPanel.add(btnRemover);
+
+        JButton btnLimpar = new JButton("Limpar");
+        aplicarEstiloBotao(btnLimpar);
+        btnLimpar.setPreferredSize(buttonSize);
+        btnLimpar.addActionListener(e -> {
+            limparCampos();
+            btnCadastrar.setEnabled(true);
+        });
+        botoesPanel.add(btnLimpar);
+        formPanel.add(botoesPanel, gbc);
+
+        add(formPanel, BorderLayout.NORTH);
 
         tableModel = new DefaultTableModel(new Object[]{"ID", "Descrição"}, 0);
         tabela = new JTable(tableModel);
-        JScrollPane scrollPane = new JScrollPane(tabela);
+        add(new JScrollPane(tabela), BorderLayout.CENTER);
 
-        add(formPanel, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
-
-        // Ações
         btnCadastrar.addActionListener(e -> salvarMarca());
         btnBuscar.addActionListener(e -> carregarMarcas());
         btnAlterar.addActionListener(e -> alterarMarca());
         btnRemover.addActionListener(e -> removerMarca());
 
-        tabela.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (!e.getValueIsAdjusting() && tabela.getSelectedRow() != -1) {
-                    int selectedRow = tabela.getSelectedRow();
-                    txtDescricao.setText((String) tableModel.getValueAt(selectedRow, 1));
-                }
+        tabela.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && tabela.getSelectedRow() != -1) {
+                int selectedRow = tabela.getSelectedRow();
+                txtDescricao.setText((String) tableModel.getValueAt(selectedRow, 1));
+                btnCadastrar.setEnabled(false);
             }
         });
 
@@ -80,7 +117,7 @@ public class MarcaForm extends JPanel {
         em.close();
 
         JOptionPane.showMessageDialog(this, "Marca cadastrada com sucesso!");
-        txtDescricao.setText("");
+        limparCampos();
         carregarMarcas();
     }
 
@@ -119,6 +156,7 @@ public class MarcaForm extends JPanel {
         em.close();
 
         JOptionPane.showMessageDialog(this, "Marca atualizada com sucesso!");
+        limparCampos();
         carregarMarcas();
     }
 
@@ -143,6 +181,13 @@ public class MarcaForm extends JPanel {
         em.close();
 
         JOptionPane.showMessageDialog(this, "Marca removida com sucesso!");
+        limparCampos();
         carregarMarcas();
+    }
+
+    private void limparCampos() {
+        txtDescricao.setText("");
+        tabela.clearSelection();
+        btnCadastrar.setEnabled(true);
     }
 }

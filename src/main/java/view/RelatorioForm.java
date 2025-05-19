@@ -1,9 +1,7 @@
 package view;
 
 import dao.PedidoDao;
-import dao.PedidoItemDao;
 import model.Pedido;
-import model.PedidoItem;
 import util.JPAUtil;
 
 import javax.persistence.EntityManager;
@@ -13,7 +11,6 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 public class RelatorioForm extends JPanel {
@@ -58,12 +55,19 @@ public class RelatorioForm extends JPanel {
 
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Salvar Relatório");
+
+        // Sugestão automática do nome de arquivo
+        if (tipo.equals("Vendas por Período")) {
+            chooser.setSelectedFile(new File("vendas_periodo.txt"));
+        } else if (tipo.equals("Produtos mais vendidos")) {
+            chooser.setSelectedFile(new File("produtos_mais_vendidos.txt"));
+        }
+
         int escolha = chooser.showSaveDialog(this);
         if (escolha != JFileChooser.APPROVE_OPTION) return;
 
         File arquivo = chooser.getSelectedFile();
 
-        // Garante que o arquivo tenha extensão .txt
         if (!arquivo.getName().toLowerCase().endsWith(".txt")) {
             arquivo = new File(arquivo.getAbsolutePath() + ".txt");
         }
@@ -75,8 +79,6 @@ public class RelatorioForm extends JPanel {
                 gerarRelatorioProdutos(writer);
             }
             JOptionPane.showMessageDialog(this, "Relatório gerado com sucesso!");
-
-            // Abre o arquivo automaticamente no programa padrão
             Desktop.getDesktop().open(arquivo);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -84,16 +86,18 @@ public class RelatorioForm extends JPanel {
         }
     }
 
+
     private void gerarRelatorioVendas(FileWriter writer) throws Exception {
         EntityManager em = JPAUtil.getEntityManager();
         List<Pedido> pedidos = new PedidoDao(em).buscarTodos();
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
-        writer.write(String.format("%-10s %-15s %-20s %-10s%n", "ID", "Data", "Cliente", "Total"));
-        writer.write("=".repeat(55) + "\n");
+        // ajuste nas larguras das colunas
+        writer.write(String.format("%-5s %-12s %-30s %10s%n", "ID", "Data", "Cliente", "Total"));
+        writer.write("=".repeat(60) + "\n");
 
         for (Pedido p : pedidos) {
-            writer.write(String.format("%-10d %-15s %-20s R$ %-10.2f%n",
+            writer.write(String.format("%-5d %-12s %-30s R$ %8.2f%n",
                     p.getIdPedido(),
                     sdf.format(p.getDataPedido()),
                     p.getCliente().getNomeCliente(),
@@ -102,6 +106,7 @@ public class RelatorioForm extends JPanel {
 
         em.close();
     }
+
 
     private void gerarRelatorioProdutos(FileWriter writer) throws Exception {
         EntityManager em = JPAUtil.getEntityManager();

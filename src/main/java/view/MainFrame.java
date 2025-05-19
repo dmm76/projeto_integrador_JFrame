@@ -139,4 +139,7 @@ public class MainFrame extends JFrame {
         contentPanel.revalidate();
         contentPanel.repaint();
     }
+//    public static void main(String[] args) {
+//        SwingUtilities.invokeLater(() -> new MainFrame().setVisible(true));
+//    }
 }

@@ -49,7 +49,7 @@ public class ClienteForm extends JPanel {
         adicionarCampo(formPanel, "CPF:", txtCpf, gbc, linha++);
         adicionarCampo(formPanel, "E-mail:", txtEmail, gbc, linha++);
         adicionarCampo(formPanel, "Telefone:", txtTelefone, gbc, linha++);
-        adicionarCampo(formPanel, "Endereço:", txtEndereco, gbc, linha++);
+        adicionarCampo(formPanel, "Endereço:", txtEndereco, gbc, linha);
 
         aplicarEstiloCampo(txtNome);
         aplicarEstiloCampo(txtCpf);
@@ -62,16 +62,30 @@ public class ClienteForm extends JPanel {
         aplicarEstiloBotao(btnAlterar);
         aplicarEstiloBotao(btnRemover);
 
+        Dimension buttonSize = new Dimension(130, 30);
+        btnSalvar.setPreferredSize(buttonSize);
+        btnBuscar.setPreferredSize(buttonSize);
+        btnAlterar.setPreferredSize(buttonSize);
+        btnRemover.setPreferredSize(buttonSize);
+
+        // botão cadastrar ao lado do campo Endereço
+        gbc.gridx = 2;
+        formPanel.add(btnSalvar, gbc);
+
+        linha++;
+        gbc.gridx = 0;
+        gbc.gridy = linha;
+        gbc.gridwidth = 3;
         JPanel botoesPanel = new JPanel(new GridLayout(1, 4, 10, 0));
         botoesPanel.setBackground(COR_FUNDO);
-        botoesPanel.add(btnSalvar);
         botoesPanel.add(btnBuscar);
         botoesPanel.add(btnAlterar);
         botoesPanel.add(btnRemover);
-
-        gbc.gridx = 0;
-        gbc.gridy = linha;
-        gbc.gridwidth = 2;
+        JButton btnLimpar = new JButton("Limpar");
+        aplicarEstiloBotao(btnLimpar);
+        btnLimpar.setPreferredSize(new Dimension(130, 30));
+        btnLimpar.addActionListener(e -> limparCampos());
+        botoesPanel.add(btnLimpar);
         formPanel.add(botoesPanel, gbc);
 
         add(formPanel, BorderLayout.NORTH);
@@ -85,7 +99,12 @@ public class ClienteForm extends JPanel {
         btnAlterar.addActionListener(e -> alterarCliente());
         btnRemover.addActionListener(e -> removerCliente());
 
-        tabela.getSelectionModel().addListSelectionListener(e -> preencherCamposComSelecionado());
+        tabela.getSelectionModel().addListSelectionListener(e ->{
+            if (!e.getValueIsAdjusting()) {
+                preencherCamposComSelecionado();
+                btnSalvar.setEnabled(false);
+            }
+        });
         carregarClientes();
     }
 
@@ -98,7 +117,9 @@ public class ClienteForm extends JPanel {
         panel.add(label, gbc);
 
         gbc.gridx = 1;
+        gbc.weightx = 1.0;
         panel.add(campo, gbc);
+        gbc.weightx = 0;
     }
 
     private void salvarCliente() {
@@ -134,7 +155,6 @@ public class ClienteForm extends JPanel {
             carregarClientes();
             if (onSaveCallback != null) onSaveCallback.accept(null);
 
-            // Fecha se estiver em um JDialog
             Window janela = SwingUtilities.getWindowAncestor(this);
             if (janela instanceof JDialog) janela.dispose();
 
@@ -230,6 +250,7 @@ public class ClienteForm extends JPanel {
             });
         }
         em.close();
+        btnSalvar.setEnabled(true);
     }
 
     private void limparCampos() {
@@ -238,5 +259,7 @@ public class ClienteForm extends JPanel {
         txtEmail.setText("");
         txtTelefone.setText("");
         txtEndereco.setText("");
+        tabela.clearSelection();
+        btnSalvar.setEnabled(true);
     }
 }

@@ -1,3 +1,4 @@
+// PedidoForm refatorado com novo padrão visual e funcional
 package view;
 
 import dao.ClienteDao;
@@ -32,6 +33,12 @@ public class PedidoForm extends JPanel {
     private final JTable tabela;
     private final DefaultTableModel tableModel;
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+    private final JButton btnCadastrar = new JButton("Cadastrar");
+    private final JButton btnBuscar = new JButton("Buscar");
+    private final JButton btnAlterar = new JButton("Alterar");
+    private final JButton btnRemover = new JButton("Remover");
+    private final JButton btnRelatorio = new JButton("Relatório");
+    private final JButton btnLimpar = new JButton("Limpar");
 
     public PedidoForm() {
         setLayout(new BorderLayout(10, 10));
@@ -44,78 +51,74 @@ public class PedidoForm extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         int linha = 0;
-
         adicionarCampo(formPanel, gbc, linha++, "Data (dd-MM-yyyy):", txtData);
         adicionarCampo(formPanel, gbc, linha++, "Status:", txtStatus);
         adicionarCampo(formPanel, gbc, linha++, "Valor Total:", txtValor);
         adicionarCampo(formPanel, gbc, linha++, "Cliente:", cbCliente);
-        adicionarCampo(formPanel, gbc, linha++, "Forma de Pagamento:", cbFormaPagamento);
+        adicionarCampo(formPanel, gbc, linha, "Forma de Pagamento:", cbFormaPagamento);
 
         aplicarEstiloCampo(txtData);
         aplicarEstiloCampo(txtStatus);
         aplicarEstiloCampo(txtValor);
-
-        carregarComboBox();
-
-        JButton btnCadastrar = new JButton("Cadastrar");
-        JButton btnBuscar = new JButton("Buscar");
-        JButton btnAlterar = new JButton("Alterar");
-        JButton btnRemover = new JButton("Remover");
-        JButton btnRelatorio = new JButton("Relatório");
 
         aplicarEstiloBotao(btnCadastrar);
         aplicarEstiloBotao(btnBuscar);
         aplicarEstiloBotao(btnAlterar);
         aplicarEstiloBotao(btnRemover);
         aplicarEstiloBotao(btnRelatorio);
+        aplicarEstiloBotao(btnLimpar);
 
+        Dimension buttonSize = new Dimension(130, 30);
+        btnCadastrar.setPreferredSize(buttonSize);
+        btnBuscar.setPreferredSize(buttonSize);
+        btnAlterar.setPreferredSize(buttonSize);
+        btnRemover.setPreferredSize(buttonSize);
+        btnRelatorio.setPreferredSize(buttonSize);
+        btnLimpar.setPreferredSize(buttonSize);
+
+        gbc.gridx = 2;
+        formPanel.add(btnCadastrar, gbc);
+
+        linha++;
+        gbc.gridx = 0;
+        gbc.gridy = linha;
+        gbc.gridwidth = 3;
         JPanel botoesPanel = new JPanel(new GridLayout(1, 5, 10, 0));
         botoesPanel.setBackground(COR_FUNDO);
-        botoesPanel.add(btnCadastrar);
         botoesPanel.add(btnBuscar);
         botoesPanel.add(btnAlterar);
         botoesPanel.add(btnRemover);
         botoesPanel.add(btnRelatorio);
-
-        gbc.gridx = 0;
-        gbc.gridy = linha;
-        gbc.gridwidth = 2;
+        botoesPanel.add(btnLimpar);
         formPanel.add(botoesPanel, gbc);
 
         add(formPanel, BorderLayout.NORTH);
 
-        tableModel = new DefaultTableModel(new Object[]{"ID", "Data", "Status", "Valor", "Cliente", "Pagamento"}, 0);
+        tableModel = new DefaultTableModel(new Object[]{"ID Pedido", "Data", "Status", "Valor", "Cliente", "Pagamento"}, 0);
         tabela = new JTable(tableModel);
         add(new JScrollPane(tabela), BorderLayout.CENTER);
 
+        carregarComboBox();
+        txtData.setText(sdf.format(new Date()));
+        carregarPedidos();
+
         btnCadastrar.addActionListener(e -> salvarPedido());
+        btnBuscar.addActionListener(e -> buscarItensPedido());
         btnAlterar.addActionListener(e -> alterarPedido());
         btnRemover.addActionListener(e -> removerPedido());
         btnRelatorio.addActionListener(e -> gerarRelatorioPedidos());
-        tabela.getSelectionModel().addListSelectionListener(e -> preencherCamposComSelecionado());
-        btnBuscar.addActionListener(e -> {
-            int selectedRow = tabela.getSelectedRow();
-            if (selectedRow == -1) {
-                JOptionPane.showMessageDialog(this, "Selecione um pedido para visualizar os itens.");
-                return;
-            }
-
-            int id = (int) tableModel.getValueAt(selectedRow, 0);
-            EntityManager em = JPAUtil.getEntityManager();
-            Pedido pedido = new PedidoDao(em).buscarPorID(id);
-            em.close();
-
-            // Obtém a janela pai (MainFrame)
-            Window window = SwingUtilities.getWindowAncestor(this);
-            if (window instanceof MainFrame mainFrame) {
-                mainFrame.abrirTela(new ItemPedidoForm(pedido));
-            } else {
-                JOptionPane.showMessageDialog(this, "Não foi possível abrir a tela dentro do sistema.");
-            }
+        btnLimpar.addActionListener(e -> {
+            limparCampos();
+            carregarPedidos();
+            btnCadastrar.setEnabled(true);
         });
 
-        txtData.setText(sdf.format(new Date()));
-        carregarPedidos();
+        tabela.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                preencherCamposComSelecionado();
+                btnCadastrar.setEnabled(false);
+            }
+        });
     }
 
     private void adicionarCampo(JPanel panel, GridBagConstraints gbc, int linha, String rotulo, JComponent campo) {
@@ -127,7 +130,9 @@ public class PedidoForm extends JPanel {
         panel.add(label, gbc);
 
         gbc.gridx = 1;
+        gbc.weightx = 1.0;
         panel.add(campo, gbc);
+        gbc.weightx = 0;
     }
 
     private void carregarComboBox() {
@@ -178,7 +183,6 @@ public class PedidoForm extends JPanel {
             JOptionPane.showMessageDialog(this, "Pedido cadastrado com sucesso!");
             limparCampos();
             carregarPedidos();
-
         } catch (ParseException ex) {
             JOptionPane.showMessageDialog(this, "Data inválida. Use o formato dd-MM-yyyy", "Erro", JOptionPane.ERROR_MESSAGE);
         } catch (NumberFormatException ex) {
@@ -186,6 +190,26 @@ public class PedidoForm extends JPanel {
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Erro ao salvar o pedido.", "Erro", JOptionPane.ERROR_MESSAGE);
             ex.printStackTrace();
+        }
+    }
+
+    private void buscarItensPedido() {
+        int selectedRow = tabela.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Selecione um pedido para visualizar os itens.");
+            return;
+        }
+
+        int id = (int) tableModel.getValueAt(selectedRow, 0);
+        EntityManager em = JPAUtil.getEntityManager();
+        Pedido pedido = new PedidoDao(em).buscarPorID(id);
+        em.close();
+
+        Window window = SwingUtilities.getWindowAncestor(this);
+        if (window instanceof MainFrame mainFrame) {
+            mainFrame.abrirTela(new ItemPedidoForm(pedido));
+        } else {
+            JOptionPane.showMessageDialog(this, "Não foi possível abrir a tela dentro do sistema.");
         }
     }
 
@@ -348,5 +372,6 @@ public class PedidoForm extends JPanel {
         txtValor.setText("");
         cbCliente.setSelectedIndex(0);
         cbFormaPagamento.setSelectedIndex(0);
+        tabela.clearSelection();
     }
 }
