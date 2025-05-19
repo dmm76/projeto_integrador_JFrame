@@ -34,7 +34,7 @@ Possui também funcionalidade de cadastro de clientes, produtos, fornecedores e 
 
 ** Diagrama de Classe Sistema BR **
 
-![Diagrama Classe](https://github.com/dmm76/blob/src/main/java/util/images/DiagramaClasseSistemaBR.png?raw=true)
+![Diagrama Classe](https://github.com/dmm76/projeto_integrador_JFrame/blob/main/src/main/java/util/images/DiagramaClasseSistemaBR.png?raw=true)
 
 ## 🔒 Segurança de Credenciais com `.env`
 
