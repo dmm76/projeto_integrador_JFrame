@@ -11,89 +11,133 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
+import static util.EstiloSistema.*;
+
 public class UsuarioSistemaForm extends JPanel {
 
-    private JTextField txtNome, txtLogin;
-    private JPasswordField txtSenha;
-    private JComboBox<String> cbPerfil;
-    private JTable tabela;
-    private DefaultTableModel tableModel;
-    private JButton btnCadastrar, btnBuscar, btnAlterar, btnRemover;
+    private final JTextField txtNome = new JTextField(20);
+    private final JTextField txtLogin = new JTextField(20);
+    private final JPasswordField txtSenha = new JPasswordField(20);
+    private final JComboBox<String> cbPerfil = new JComboBox<>(new String[]{"admin", "operador"});
+
+    private final JButton btnCadastrar = new JButton("Cadastrar");
+    private final JButton btnLimpar = new JButton("Limpar");
+    private final JButton btnAlterar = new JButton("Alterar");
+    private final JButton btnRemover = new JButton("Remover");
+
+    private final JTable tabela;
+    private final DefaultTableModel tableModel;
 
     public UsuarioSistemaForm() {
         setLayout(new BorderLayout(10, 10));
+        setBackground(COR_FUNDO);
 
+        // Painel de formulário
         JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(COR_FUNDO);
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(6, 6, 6, 6);
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridx = gbc.gridy = 0;
 
-        txtNome = new JTextField(20);
-        txtLogin = new JTextField(20);
-        txtSenha = new JPasswordField(20);
-        cbPerfil = new JComboBox<>(new String[]{"admin", "operador"});
+        adicionarCampo(formPanel, gbc, "Nome:", txtNome, 0);
+        adicionarCampo(formPanel, gbc, "Login:", txtLogin, 1);
+        adicionarCampo(formPanel, gbc, "Senha:", txtSenha, 2);
+        adicionarCampo(formPanel, gbc, "Perfil:", cbPerfil, 3);
 
-        btnCadastrar = new JButton("Cadastrar");
-        btnBuscar = new JButton("Buscar");
-        btnAlterar = new JButton("Alterar");
-        btnRemover = new JButton("Remover");
-
-        formPanel.add(new JLabel("Nome:"), gbc);
-        gbc.gridx++;
-        formPanel.add(txtNome, gbc);
-        gbc.gridx = 0; gbc.gridy++;
-
-        formPanel.add(new JLabel("Login:"), gbc);
-        gbc.gridx++;
-        formPanel.add(txtLogin, gbc);
-        gbc.gridx = 0; gbc.gridy++;
-
-        formPanel.add(new JLabel("Senha:"), gbc);
-        gbc.gridx++;
-        formPanel.add(txtSenha, gbc);
-        gbc.gridx = 0; gbc.gridy++;
-
-        formPanel.add(new JLabel("Perfil:"), gbc);
-        gbc.gridx++;
-        formPanel.add(cbPerfil, gbc);
-        gbc.gridx = 0; gbc.gridy++;
-
-        gbc.gridwidth = 2;
-        JPanel botoesPanel = new JPanel(new GridLayout(1, 4, 5, 5));
+        // Painel de botões
+        JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        botoesPanel.setBackground(COR_FUNDO);
+        estilizarBotao(btnCadastrar);
+        estilizarBotao(btnLimpar);
+        estilizarBotao(btnAlterar);
+        estilizarBotao(btnRemover);
         botoesPanel.add(btnCadastrar);
-        botoesPanel.add(btnBuscar);
+        botoesPanel.add(btnLimpar);
         botoesPanel.add(btnAlterar);
         botoesPanel.add(btnRemover);
+
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
         formPanel.add(botoesPanel, gbc);
 
+        // Tabela
         tableModel = new DefaultTableModel(new Object[]{"ID", "Nome", "Login", "Perfil"}, 0);
         tabela = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(tabela);
+        scrollPane.setPreferredSize(new Dimension(600, 200));
 
+        // Adiciona ao painel principal
         add(formPanel, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
 
+        // Eventos
         btnCadastrar.addActionListener(e -> salvarUsuario());
-        btnBuscar.addActionListener(e -> carregarUsuarios());
         btnAlterar.addActionListener(e -> alterarUsuario());
         btnRemover.addActionListener(e -> removerUsuario());
-
         tabela.getSelectionModel().addListSelectionListener(this::preencherCampos);
+        btnLimpar.addActionListener(e -> {
+            limparCampos();
+            btnCadastrar.setEnabled(true);
+        });
 
+        desabilitarCadastroAoFocar(txtNome, txtLogin, txtSenha, cbPerfil);
         carregarUsuarios();
     }
 
+    private void adicionarCampo(JPanel panel, GridBagConstraints gbc, String label, JComponent campo, int y) {
+        gbc.gridx = 0;
+        gbc.gridy = y;
+        gbc.gridwidth = 1;
+        JLabel lbl = new JLabel(label);
+        lbl.setForeground(COR_TEXTO);
+        panel.add(lbl, gbc);
+
+        gbc.gridx = 1;
+        panel.add(campo, gbc);
+    }
+
+    private void estilizarBotao(JButton botao) {
+        botao.setBackground(COR_BOTAO);
+        botao.setForeground(Color.WHITE);
+        botao.setFocusPainted(false);
+        botao.setFont(FONTE_BOTAO);
+    }
+
+    private void desabilitarCadastroAoFocar(JComponent... componentes) {
+        for (JComponent comp : componentes) {
+            if (comp instanceof JTextField || comp instanceof JPasswordField) {
+                comp.addFocusListener(new java.awt.event.FocusAdapter() {
+                    public void focusGained(java.awt.event.FocusEvent evt) {
+                        btnCadastrar.setEnabled(false);
+                    }
+                });
+            } else if (comp instanceof JComboBox) {
+                ((JComboBox<?>) comp).addActionListener(e -> btnCadastrar.setEnabled(false));
+            }
+        }
+    }
+
     private void salvarUsuario() {
+        if (!btnCadastrar.isEnabled()) {
+            JOptionPane.showMessageDialog(this, "Clique em 'Limpar' para cadastrar um novo usuário.");
+            return;
+        }
+
         String nome = txtNome.getText().trim();
         String login = txtLogin.getText().trim();
         String senha = new String(txtSenha.getPassword()).trim();
         String perfil = (String) cbPerfil.getSelectedItem();
 
+        if (senha.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "A senha não pode estar em branco.");
+            return;
+        }
+
+        UsuarioSistema usuario = new UsuarioSistema(nome, login, senha, perfil);
         EntityManager em = JPAUtil.getEntityManager();
         UsuarioSistemaDao dao = new UsuarioSistemaDao(em);
 
-        UsuarioSistema usuario = new UsuarioSistema(nome, login, senha, perfil);
         em.getTransaction().begin();
         dao.cadastrar(usuario);
         em.getTransaction().commit();
@@ -103,6 +147,7 @@ public class UsuarioSistemaForm extends JPanel {
         limparCampos();
         carregarUsuarios();
     }
+
 
     private void carregarUsuarios() {
         tableModel.setRowCount(0);
@@ -122,6 +167,12 @@ public class UsuarioSistemaForm extends JPanel {
             return;
         }
 
+        String novaSenha = new String(txtSenha.getPassword()).trim();
+        if (novaSenha.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "A senha não pode estar em branco.");
+            return;
+        }
+
         int id = (int) tableModel.getValueAt(row, 0);
         EntityManager em = JPAUtil.getEntityManager();
         UsuarioSistemaDao dao = new UsuarioSistemaDao(em);
@@ -135,7 +186,7 @@ public class UsuarioSistemaForm extends JPanel {
 
         usuario.setNomeUsuario(txtNome.getText().trim());
         usuario.setLoginUsuario(txtLogin.getText().trim());
-        usuario.setSenhaUsuario(new String(txtSenha.getPassword()).trim());
+        usuario.setSenhaUsuario(novaSenha);
         usuario.setPerfilUsuario((String) cbPerfil.getSelectedItem());
 
         em.getTransaction().begin();
@@ -147,6 +198,7 @@ public class UsuarioSistemaForm extends JPanel {
         limparCampos();
         carregarUsuarios();
     }
+
 
     private void removerUsuario() {
         int row = tabela.getSelectedRow();
@@ -194,5 +246,6 @@ public class UsuarioSistemaForm extends JPanel {
         txtLogin.setText("");
         txtSenha.setText("");
         cbPerfil.setSelectedIndex(0);
+        tabela.clearSelection();
     }
 }

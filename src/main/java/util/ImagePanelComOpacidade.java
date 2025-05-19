@@ -4,16 +4,17 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.net.URL;
 import javax.imageio.ImageIO;
 
 public class ImagePanelComOpacidade extends JPanel {
-    private String caminhoImagem;
+    private final URL imagemUrl;
     private float opacidade = 0.2f;
     private int largura = 300;
     private int altura = 300;
 
-    public ImagePanelComOpacidade(String caminhoImagem) {
-        this.caminhoImagem = caminhoImagem;
+    public ImagePanelComOpacidade(URL imagemUrl) {
+        this.imagemUrl = imagemUrl;
     }
 
     public void setOpacidade(float opacidade) {
@@ -29,7 +30,7 @@ public class ImagePanelComOpacidade extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         try {
-            BufferedImage imagem = ImageIO.read(new File(caminhoImagem));
+            BufferedImage imagem = ImageIO.read(imagemUrl);
             Image redimensionada = imagem.getScaledInstance(largura, altura, Image.SCALE_SMOOTH);
 
             Graphics2D g2d = (Graphics2D) g.create();
@@ -43,4 +44,5 @@ public class ImagePanelComOpacidade extends JPanel {
         }
     }
 }
+
 

@@ -4,6 +4,8 @@ import static util.EstiloSistema.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.net.URL;
+
 import model.UsuarioSistema;
 import util.ImagePanelComOpacidade;
 
@@ -20,7 +22,12 @@ public class MainFrame extends JFrame {
         setLocationRelativeTo(null);
 
         // Painel com imagem centralizada e opacidade
-        contentPanel = new ImagePanelComOpacidade("src/main/java/util/images/BR_Sistema_LOGO2.png");
+        URL url = getClass().getResource("/images/BR_Sistema_LOGO2.png");
+        if (url == null) {
+            System.err.println("Imagem não encontrada! Verifique o caminho.");
+        } else {
+            contentPanel = new ImagePanelComOpacidade(url);
+        }
         contentPanel.setLayout(new BorderLayout());
         contentPanel.setBackground(COR_FUNDO);
         add(contentPanel, BorderLayout.CENTER);

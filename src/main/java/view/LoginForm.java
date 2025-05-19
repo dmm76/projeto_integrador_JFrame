@@ -28,7 +28,7 @@ public class LoginForm extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         // Logo
-        ImageIcon originalIcon = new ImageIcon("src/main/java/util/images/BR_Sistema_LOGO2.png");
+        ImageIcon originalIcon = new ImageIcon(getClass().getResource("/images/BR_Sistema_LOGO2.png"));
         Image imagemReduzida = originalIcon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
         JLabel logo = new JLabel(new ImageIcon(imagemReduzida));
         logo.setHorizontalAlignment(SwingConstants.CENTER);
@@ -38,7 +38,7 @@ public class LoginForm extends JFrame {
         gbc.gridwidth = 2;
         panel.add(logo, gbc);
 
-        // Campo Login
+        // Campo Loginadmi
         JLabel lblLogin = new JLabel("Login:");
         aplicarEstiloLabel(lblLogin);
         gbc.gridy++;
