@@ -11,7 +11,7 @@
 
 Este repositório contém o projeto de Trabalho de Conclusão de Curso (Projeto Integrador) desenvolvido para a professora **Claudia Tupan**, do curso de **Desenvolvimento de Sistemas - Senac**.
 
-![Diagrama DDR](https://github.com/dmm76/tcc_senac/blob/main/src/main/java/util/images/ddr-banco.png?raw=true)
+![Diagrama DDR](https://github.com/dmm76/src/main/java/util/images/DDR_Banco.png?raw=true)
 
 
 ## 📌 Descrição
@@ -34,7 +34,7 @@ Possui também funcionalidade de cadastro de clientes, produtos, fornecedores e 
 
 ** Diagrama de Classe Sistema BR **
 
-![Diagrama Classe](https://github.com/dmm76/tcc_senac/blob/main/src/main/java/util/images/diagrama_de_classe_sistema_br.png?raw=true)
+![Diagrama Classe](https://github.com/dmm76/blob/src/main/java/util/images/DiagramaClasseSistemaBR.png?raw=true)
 
 ## 🔒 Segurança de Credenciais com `.env`
 
