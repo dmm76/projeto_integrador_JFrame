@@ -243,17 +243,16 @@ public class VendaForm extends JPanel {
     }
 
     private void abrirCadastroClienteRapido() {
-        JFrame framePrincipal = (JFrame) SwingUtilities.getWindowAncestor(this);
-        if (framePrincipal != null) {
+        JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
+        if (frame instanceof MainFrame) {
+            MainFrame main = (MainFrame) frame;
             ClienteForm clienteForm = new ClienteForm((Void v) -> {
                 EntityManager em = JPAUtil.getEntityManager();
-                carregarComboBox(em); // recarrega os dados após salvar cliente
+                carregarComboBox(em); // Recarrega clientes
                 em.close();
+                main.abrirTela(this); // Volta para a VendaForm atual
             });
-
-            framePrincipal.setContentPane(clienteForm);
-            framePrincipal.revalidate();
-            framePrincipal.repaint();
+            main.abrirTela(clienteForm); // Navega para ClienteForm
         }
     }
 }
