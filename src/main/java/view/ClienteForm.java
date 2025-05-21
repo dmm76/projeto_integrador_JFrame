@@ -95,7 +95,12 @@ public class ClienteForm extends JPanel {
         add(new JScrollPane(tabela), BorderLayout.CENTER);
 
         btnSalvar.addActionListener(e -> salvarCliente());
-        btnBuscar.addActionListener(e -> carregarClientes());
+        btnBuscar.addActionListener(e -> {
+            carregarClientes();
+            btnSalvar.setEnabled(false); // impede cadastro com dados carregados
+            btnAlterar.setEnabled(true);
+            btnRemover.setEnabled(true);
+        });
         btnAlterar.addActionListener(e -> alterarCliente());
         btnRemover.addActionListener(e -> removerCliente());
 
@@ -103,9 +108,15 @@ public class ClienteForm extends JPanel {
             if (!e.getValueIsAdjusting()) {
                 preencherCamposComSelecionado();
                 btnSalvar.setEnabled(false);
+                btnAlterar.setEnabled(true);
+                btnRemover.setEnabled(true);
             }
         });
         carregarClientes();
+        tabela.clearSelection();
+        btnSalvar.setEnabled(true);
+        btnAlterar.setEnabled(false);
+        btnRemover.setEnabled(false);
     }
 
     private void adicionarCampo(JPanel panel, String rotulo, JTextField campo, GridBagConstraints gbc, int linha) {
@@ -144,6 +155,12 @@ public class ClienteForm extends JPanel {
 
             EntityManager em = JPAUtil.getEntityManager();
             ClienteDao dao = new ClienteDao(em);
+            if (dao.existeCpf(cliente.getCpfCliente())) {
+                JOptionPane.showMessageDialog(this, "CPF já cadastrado no sistema.");
+                em.close();
+                limparCampos();
+                return;
+            }
 
             em.getTransaction().begin();
             dao.cadastrar(cliente);
@@ -250,7 +267,7 @@ public class ClienteForm extends JPanel {
             });
         }
         em.close();
-        btnSalvar.setEnabled(true);
+        //btnSalvar.setEnabled(true);
     }
 
     private void limparCampos() {
@@ -261,5 +278,7 @@ public class ClienteForm extends JPanel {
         txtEndereco.setText("");
         tabela.clearSelection();
         btnSalvar.setEnabled(true);
+        btnAlterar.setEnabled(false);
+        btnRemover.setEnabled(false);
     }
 }

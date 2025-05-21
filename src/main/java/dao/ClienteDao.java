@@ -35,5 +35,11 @@ public class ClienteDao {
     public void alterar(Cliente cliente){
         em.merge(cliente);
     }
+    public boolean existeCpf(String cpf) {
+        Long count = em.createQuery("SELECT COUNT(c) FROM Cliente c WHERE c.cpfCliente = :cpf", Long.class)
+                .setParameter("cpf", cpf)
+                .getSingleResult();
+        return count > 0;
+    }
 
 }
